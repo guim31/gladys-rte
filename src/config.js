@@ -1,30 +1,26 @@
 // -----------------------------------------------------------------------------
 // Integration configuration.
 //
-// The configuration is filled in by the user in Gladys, from the `config_schema`
-// declared in `gladys-assistant-integration.json`. The SDK fetches it for you
-// (`gladys.getConfig()`) and notifies you of every change through
-// `gladys.onConfigUpdated()`.
-//
-// This module only provides defaults and normalizes the received object, so the
-// rest of the code never has to deal with `undefined`.
+// Filled in by the user in Gladys from the `config_schema` of
+// `gladys-assistant-integration.json`. This module provides the defaults and
+// normalizes the received object, so the rest of the code never deals with
+// `undefined` or with a value typed by hand with stray spaces.
 // -----------------------------------------------------------------------------
 
+/** The languages of the Gladys interface, every text exists in all four. */
+export const LANGUAGES = ['en', 'fr', 'de', 'es'];
+
 // Defaults: they MUST stay consistent with the `default` values declared in the
-// `config_schema` of the manifest.
+// `config_schema` of the manifest (test/manifest.test.js checks it).
 export const DEFAULT_CONFIG = {
-  latitude: 48.8566, // Paris
-  longitude: 2.3522,
-  unit: 'celsius', // 'celsius' | 'fahrenheit'
-  // Seconds between two reads of the polled sensors. Gladys polls at most once
-  // a minute: slower intervals are applied by skipping polls (see
-  // createPoller in src/devices/index.js).
-  poll_frequency: 300,
-  // Reserved key (NOT in config_schema): because the manifest declares both
-  // 'local' and 'cloud' in its `transports` field, Gladys shows a standard
-  // "Prefer the local connection" toggle and sends the user's choice here.
-  // Read-only for the integration; defaults to true.
-  GLADYS_PREFER_LOCAL: true,
+  // Language of the feature names (frozen when a device is added) and of the
+  // texts the container produces where Gladys does not say the user's
+  // language (scene events, configuration messages).
+  language: 'fr',
+  // The EcoWatt application of the user on data.rte-france.com (optional:
+  // without it, only the éCO2mix device exists).
+  ecowatt_client_id: '',
+  ecowatt_client_secret: '',
 };
 
 /**
@@ -32,14 +28,19 @@ export const DEFAULT_CONFIG = {
  * @param {Record<string, unknown>} raw config returned by the SDK
  */
 export function normalizeConfig(raw = {}) {
+  const language = String(raw.language ?? DEFAULT_CONFIG.language);
   return {
-    ...DEFAULT_CONFIG,
-    ...raw,
-    // Force the types: config may arrive as strings from a form.
-    latitude: Number(raw.latitude ?? DEFAULT_CONFIG.latitude),
-    longitude: Number(raw.longitude ?? DEFAULT_CONFIG.longitude),
-    poll_frequency: Number(raw.poll_frequency ?? DEFAULT_CONFIG.poll_frequency),
-    // The preference is a boolean; anything but an explicit false means true.
-    GLADYS_PREFER_LOCAL: raw.GLADYS_PREFER_LOCAL !== false,
+    language: LANGUAGES.includes(language) ? language : DEFAULT_CONFIG.language,
+    ecowatt_client_id: String(raw.ecowatt_client_id ?? '').trim(),
+    // Pasted from the RTE portal: spaces and line breaks around it are noise.
+    ecowatt_client_secret: String(raw.ecowatt_client_secret ?? '').trim(),
   };
+}
+
+/**
+ * EcoWatt is only read with both halves of the application credentials.
+ * @param {ReturnType<typeof normalizeConfig>} config
+ */
+export function hasEcowatt(config) {
+  return Boolean(config.ecowatt_client_id && config.ecowatt_client_secret);
 }

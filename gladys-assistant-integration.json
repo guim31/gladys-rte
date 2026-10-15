@@ -1,177 +1,292 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "RTE éCO2mix & EcoWatt",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "French grid in real time: CO₂ per kWh, electricity mix and RTE EcoWatt alerts.",
+    "fr": "Réseau électrique français en direct : CO₂ par kWh, mix de production et alertes EcoWatt.",
+    "de": "Französisches Stromnetz live: CO₂ pro kWh, Strommix und EcoWatt-Warnungen von RTE.",
+    "es": "Red eléctrica francesa en directo: CO₂ por kWh, mix eléctrico y alertas EcoWatt de RTE."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
+  "docker_image": "ghcr.io/guim31/gladys-rte:1.0.0",
   "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-rte/main/cover.png",
+  "categories": ["energy"],
+  "transports": ["cloud"],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "Open data from RTE",
+        "fr": "Les données ouvertes de RTE",
+        "de": "Offene Daten von RTE",
+        "es": "Datos abiertos de RTE"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "The electricity mix and the CO₂ of the French grid (éCO2mix) need nothing: they are read every 15 minutes. The EcoWatt signal needs a free key from the RTE data portal. Not affiliated with RTE.",
+        "fr": "Le mix électrique et le CO₂ du réseau français (éCO2mix) ne demandent rien : ils sont lus toutes les 15 minutes. Le signal EcoWatt demande une clé gratuite du portail de données de RTE. Sans lien avec RTE.",
+        "de": "Der Strommix und das CO₂ des französischen Netzes (éCO2mix) brauchen nichts und werden alle 15 Minuten gelesen. Das EcoWatt-Signal braucht einen kostenlosen Schlüssel vom Datenportal von RTE. Nicht mit RTE verbunden.",
+        "es": "El mix eléctrico y el CO₂ de la red francesa (éCO2mix) no necesitan nada: se leen cada 15 minutos. La señal EcoWatt necesita una clave gratuita del portal de datos de RTE. Sin relación con RTE."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://data.rte-france.com/catalog/-/api/consumption/Ecowatt/v5.0",
+          "label": {
+            "en": "EcoWatt API on the RTE portal",
+            "fr": "API EcoWatt sur le portail de RTE",
+            "de": "EcoWatt-API im RTE-Portal",
+            "es": "API EcoWatt en el portal de RTE"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
+      "key": "ecowatt_client_id",
+      "type": "string",
+      "label": {
+        "en": "EcoWatt client ID",
+        "fr": "ID client EcoWatt",
+        "de": "EcoWatt-Client-ID",
+        "es": "ID de cliente EcoWatt"
       },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
-      "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
+      "description": {
+        "en": "Optional. On data.rte-france.com: My applications, then the application subscribed to the EcoWatt API.",
+        "fr": "Facultatif. Sur data.rte-france.com : Mes applications, puis l'application abonnée à l'API EcoWatt.",
+        "de": "Optional. Auf data.rte-france.com: Meine Anwendungen, dann die Anwendung mit Abo der EcoWatt-API.",
+        "es": "Opcional. En data.rte-france.com: Mis aplicaciones, luego la aplicación suscrita a la API EcoWatt."
+      },
+      "required": false,
+      "default": ""
     },
     {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+      "key": "ecowatt_client_secret",
+      "type": "secret",
+      "label": {
+        "en": "EcoWatt client secret",
+        "fr": "ID secret EcoWatt",
+        "de": "EcoWatt-Client-Secret",
+        "es": "Secreto de cliente EcoWatt"
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
+      "description": {
+        "en": "Optional, given with the client ID. Stays in Gladys, never written in the logs.",
+        "fr": "Facultatif, donné avec l'ID client. Reste dans Gladys, jamais écrit dans les journaux.",
+        "de": "Optional, zusammen mit der Client-ID. Bleibt in Gladys, steht nie in den Logs.",
+        "es": "Opcional, se entrega con el ID de cliente. Se queda en Gladys, nunca en los registros."
+      },
+      "required": false
     },
     {
-      "key": "unit",
+      "key": "language",
       "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
-      "required": false,
-      "default": "celsius",
-      "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
-      ]
-    },
-    {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
+      "label": {
+        "en": "Language of the feature names",
+        "fr": "Langue des noms de fonctionnalités",
+        "de": "Sprache der Funktionsnamen",
+        "es": "Idioma de los nombres de funciones"
+      },
       "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+        "en": "Names given to the features when a device is added, and texts of the configuration screen.",
+        "fr": "Noms donnés aux fonctionnalités à l'ajout d'un appareil, et textes de l'écran de configuration.",
+        "de": "Namen der Funktionen beim Hinzufügen eines Geräts und Texte der Konfigurationsseite.",
+        "es": "Nombres de las funciones al añadir un dispositivo y textos de la pantalla de configuración."
       },
       "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "default": "fr",
+      "options": [
+        {
+          "value": "en",
+          "label": { "en": "English", "fr": "Anglais", "de": "Englisch", "es": "Inglés" }
+        },
+        {
+          "value": "fr",
+          "label": { "en": "French", "fr": "Français", "de": "Französisch", "es": "Francés" }
+        },
+        {
+          "value": "de",
+          "label": { "en": "German", "fr": "Allemand", "de": "Deutsch", "es": "Alemán" }
+        },
+        {
+          "value": "es",
+          "label": { "en": "Spanish", "fr": "Espagnol", "de": "Spanisch", "es": "Español" }
+        }
+      ]
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ]
+      "key": "test_connection",
+      "label": {
+        "en": "Test the connection to RTE",
+        "fr": "Tester la connexion à RTE",
+        "de": "Verbindung zu RTE testen",
+        "es": "Probar la conexión con RTE"
+      },
+      "description": {
+        "en": "Reads éCO2mix now, and checks the EcoWatt key when one is given.",
+        "fr": "Lit éCO2mix tout de suite, et vérifie la clé EcoWatt si elle est renseignée.",
+        "de": "Liest éCO2mix sofort und prüft den EcoWatt-Schlüssel, falls angegeben.",
+        "es": "Lee éCO2mix ahora y comprueba la clave EcoWatt si se ha indicado."
+      },
+      "timeout_seconds": 60
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "ecowatt_alert",
+      "label": {
+        "en": "EcoWatt alert announced",
+        "fr": "Alerte EcoWatt annoncée",
+        "de": "EcoWatt-Warnung angekündigt",
+        "es": "Alerta EcoWatt anunciada"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "RTE announces an orange or red day (today or in the next three days). Once per announcement.",
+        "fr": "RTE annonce un jour orange ou rouge (aujourd'hui ou dans les trois jours). Une fois par annonce.",
+        "de": "RTE kündigt einen orangen oder roten Tag an (heute oder in den nächsten drei Tagen). Einmal pro Ankündigung.",
+        "es": "RTE anuncia un día naranja o rojo (hoy o en los tres días siguientes). Una vez por anuncio."
       },
       "fields": [
         {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
+          "key": "color",
+          "type": "multi_select",
+          "label": {
+            "en": "Signal",
+            "fr": "Signal",
+            "de": "Signal",
+            "es": "Señal"
+          },
+          "options": [
+            {
+              "value": "orange",
+              "label": {
+                "en": "Orange (tight grid)",
+                "fr": "Orange (système tendu)",
+                "de": "Orange (angespanntes Netz)",
+                "es": "Naranja (red tensa)"
+              }
+            },
+            {
+              "value": "red",
+              "label": {
+                "en": "Red (cuts possible)",
+                "fr": "Rouge (coupures possibles)",
+                "de": "Rot (Abschaltungen möglich)",
+                "es": "Rojo (posibles cortes)"
+              }
+            }
+          ]
         },
         {
-          "key": "target",
-          "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
+          "key": "days_ahead",
+          "type": "select",
+          "label": {
+            "en": "Day concerned",
+            "fr": "Jour concerné",
+            "de": "Betroffener Tag",
+            "es": "Día afectado"
+          },
           "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
+            {
+              "value": "0",
+              "label": { "en": "Today", "fr": "Aujourd'hui", "de": "Heute", "es": "Hoy" }
+            },
+            {
+              "value": "1",
+              "label": { "en": "Tomorrow", "fr": "Demain", "de": "Morgen", "es": "Mañana" }
+            },
+            {
+              "value": "2",
+              "label": {
+                "en": "In two days",
+                "fr": "Dans deux jours",
+                "de": "In zwei Tagen",
+                "es": "Dentro de dos días"
+              }
+            },
+            {
+              "value": "3",
+              "label": {
+                "en": "In three days",
+                "fr": "Dans trois jours",
+                "de": "In drei Tagen",
+                "es": "Dentro de tres días"
+              }
+            }
           ]
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "color",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
-        }
-      ]
-    }
-  ],
-  "scene_actions": [
-    {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
-      },
-      "timeout_seconds": 15,
-      "fields": [
+          "label": {
+            "en": "Signal (orange or red)",
+            "fr": "Signal (orange ou red)",
+            "de": "Signal (orange oder red)",
+            "es": "Señal (orange o red)"
+          }
+        },
         {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ],
-      "outputs": [
+          "key": "level",
+          "type": "number",
+          "label": {
+            "en": "EcoWatt level (2 or 3)",
+            "fr": "Niveau EcoWatt (2 ou 3)",
+            "de": "EcoWatt-Stufe (2 oder 3)",
+            "es": "Nivel EcoWatt (2 o 3)"
+          }
+        },
         {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "key": "date",
+          "type": "string",
+          "label": {
+            "en": "Date of the day (YYYY-MM-DD)",
+            "fr": "Date du jour concerné (AAAA-MM-JJ)",
+            "de": "Datum des Tages (JJJJ-MM-TT)",
+            "es": "Fecha del día (AAAA-MM-DD)"
+          }
+        },
+        {
+          "key": "days_ahead",
+          "type": "number",
+          "label": {
+            "en": "In how many days (0 = today)",
+            "fr": "Dans combien de jours (0 = aujourd'hui)",
+            "de": "In wie vielen Tagen (0 = heute)",
+            "es": "Dentro de cuántos días (0 = hoy)"
+          }
+        },
+        {
+          "key": "message",
+          "type": "string",
+          "label": {
+            "en": "Message from RTE (in French)",
+            "fr": "Message de RTE",
+            "de": "Nachricht von RTE (auf Französisch)",
+            "es": "Mensaje de RTE (en francés)"
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "grid",
+      "label": {
+        "en": "French power grid",
+        "fr": "Réseau électrique",
+        "de": "Französisches Stromnetz",
+        "es": "Red eléctrica francesa"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "description": {
+        "en": "CO₂ per kWh, consumption, the mix as bars and the EcoWatt signal.",
+        "fr": "CO₂ par kWh, consommation, le mix en barres et le signal EcoWatt.",
+        "de": "CO₂ pro kWh, Verbrauch, der Strommix als Balken und das EcoWatt-Signal.",
+        "es": "CO₂ por kWh, consumo, el mix en barras y la señal EcoWatt."
+      },
+      "icon": "zap"
     }
   ]
 }
