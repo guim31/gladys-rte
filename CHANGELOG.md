@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-10-15
+
 ### Changed
 
 - Documentation: what the EcoWatt widget and scene condition built into Gladys already do, and
@@ -32,5 +34,6 @@ the notes of the version's GitHub Release.
 - **Test the connection to RTE** button in the configuration.
 - Every text in English, French, German and Spanish, with the documentation in the four languages.
 
-[Unreleased]: https://github.com/guim31/gladys-rte/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/guim31/gladys-rte/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/guim31/gladys-rte/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/guim31/gladys-rte/releases/tag/v1.0.1
