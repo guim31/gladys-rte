@@ -30,6 +30,25 @@ La integración lee dos fuentes de RTE:
 Añade dos dispositivos, un widget para el panel y un desencadenante de escena «Alerta EcoWatt
 anunciada».
 
+### EcoWatt ya está en Gladys
+
+Gladys ya muestra EcoWatt, sin esta integración ni clave de RTE: el widget del panel **Ecowatt
+(Francia)** (la señal hora por hora de hoy y de los días siguientes) y la condición de escena
+**Condición sobre Ecowatt (Francia)** («Continuar la escena si la red está» normal, en alerta o
+crítica, para la hora en que se ejecuta la escena). Gladys obtiene estos datos a través de sus
+propios servidores (los de Gladys Plus), sin suscripción ni cuenta que crear. Gladys no tiene ni
+dispositivo ni desencadenante EcoWatt.
+
+- **Para ver EcoWatt en el panel**, basta con el widget de Gladys: no hace falta indicar una clave
+  aquí.
+- **La parte EcoWatt de esta integración** es para quienes quieren EcoWatt en sus **escenas**: un
+  dispositivo (hoy, mañana, hora actual) con su historial y el desencadenante nativo «Un dispositivo
+  cambia de estado», y el desencadenante **Alerta EcoWatt anunciada**, que inicia una escena en
+  cuanto se anuncia un día naranja o rojo. Consulta RTE directamente con su propia clave, sin pasar
+  por los servidores de Gladys.
+- **éCO2mix** (intensidad de CO₂, mix de producción, consumo nacional) solo existe en esta
+  integración.
+
 ## Requisitos
 
 - Gladys Assistant 5.1.0 o posterior.

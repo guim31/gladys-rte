@@ -10,6 +10,11 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+### Changed
+
+- Documentation: what the EcoWatt widget and scene condition built into Gladys already do, and
+  when this integration's EcoWatt device and alert trigger are useful instead.
+
 ## [1.0.1] - 2026-10-15
 
 ### Added
