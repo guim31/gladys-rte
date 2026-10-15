@@ -30,6 +30,25 @@ Die Integration liest zwei Quellen von RTE:
 Die Integration fügt zwei Geräte, ein Dashboard-Widget und einen Szenen-Auslöser „EcoWatt-Warnung angekündigt“
 hinzu.
 
+### EcoWatt gibt es schon in Gladys
+
+Gladys zeigt EcoWatt bereits ohne diese Integration und ohne RTE-Schlüssel: das Dashboard-Widget
+**Ecowatt (Frankreich)** (das stündliche Signal von heute und den nächsten Tagen) und die
+Szenen-Bedingung **Bedingung für Ecowatt (Frankreich)** („Fortsetzen der Szene, wenn das Netzwerk“
+in Ordnung, gewarnt oder kritisch ist, für die Stunde, in der die Szene läuft). Gladys holt diese
+Daten über seine eigenen Server (die von Gladys Plus), ohne Abo und ohne anzulegendes Konto. Ein
+EcoWatt-Gerät oder einen EcoWatt-Auslöser gibt es in Gladys nicht.
+
+- **Um EcoWatt auf dem Dashboard zu sehen**, reicht das Gladys-Widget: Hier musst du keinen
+  Schlüssel eintragen.
+- **Der EcoWatt-Teil dieser Integration** ist für alle, die EcoWatt in ihren **Szenen** wollen: ein
+  Gerät (heute, morgen, aktuelle Stunde) mit Verlauf und dem nativen Auslöser „Ein Gerät ändert
+  seinen Zustand“, und der Auslöser **EcoWatt-Warnung angekündigt**, der eine Szene startet, sobald
+  ein oranger oder roter Tag angekündigt wird. Er liest RTE direkt mit deinem eigenen Schlüssel,
+  ohne Umweg über die Gladys-Server.
+- **éCO2mix** (CO₂-Intensität, Strommix, landesweiter Verbrauch) gibt es nur in dieser
+  Integration.
+
 ## Voraussetzungen
 
 - Gladys Assistant 5.1.0 oder neuer.

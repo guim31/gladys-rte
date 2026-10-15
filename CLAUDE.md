@@ -244,6 +244,12 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
   ajouté (sinon le cœur jetterait le composant).
 - **Heartbeat du SDK** : `publishChangedStates(…, { heartbeat })` date avec `Date.now()`, pas avec
   l'horloge injectée : un test du heartbeat doit simuler `Date` (`t.mock.timers`).
+- **EcoWatt du cœur** (vérifié dans v5.2.1) : `server/services/ecowatt` (widget « Ecowatt ( France ) »)
+  et l'action de scène `ecowatt.condition` (condition sur l'heure en cours au moment de la scène),
+  via `gladys.gateway.getEcowattSignals` → `gladys-gateway-js` `GET /ecowatt/v4/signals` **sans
+  authentification**, cache 30 min : ni Gladys Plus ni clé. Ni appareil ni déclencheur. La condition
+  ne connaît que 1/2/3 : une heure décarbonée (0) ne vaut jamais « Réseau ok ». La doc le dit
+  (section « EcoWatt est déjà dans Gladys »).
 - **Garde-fou du tutoiement** : la regex attrape aussi « Sie » = « ils/elle » en début de phrase.
   Reformuler (« Die Integration… ») plutôt que l'assouplir.
 

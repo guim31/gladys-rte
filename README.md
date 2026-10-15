@@ -27,6 +27,19 @@ that warns of tight days on the grid.
 - Every text in English, French, German and Spanish; full user documentation in
   [`docs/`](docs/fr.md).
 
+### EcoWatt in the Gladys core
+
+Gladys (5.2.1) already has an EcoWatt **dashboard widget** and an EcoWatt **scene condition** (the
+signal of the current hour when a scene runs), fed by the Gladys servers (`server/services/ecowatt`,
+`gladys.gateway.getEcowattSignals`, an unauthenticated relay: no Gladys Plus subscription and no RTE
+key needed). It has no EcoWatt device and no EcoWatt trigger. So:
+
+- to just see EcoWatt on the dashboard, the core widget is enough;
+- this integration's EcoWatt part is for **scenes**: a device (today, tomorrow, current hour, with
+  history and the native device trigger) and the "EcoWatt alert announced" trigger, read straight
+  from RTE with the user's own key, not through the Gladys servers;
+- éCO2mix (CO₂ intensity, mix, consumption) is this integration's alone.
+
 ## Requirements
 
 - Gladys Assistant 5.1.0 or later, with internet access.

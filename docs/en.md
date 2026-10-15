@@ -28,6 +28,23 @@ The integration reads two RTE sources:
 
 It adds two devices, a dashboard widget and an "EcoWatt alert announced" scene trigger.
 
+### EcoWatt is already in Gladys
+
+Gladys already shows EcoWatt, without this integration or an RTE key: the **Ecowatt (France)**
+dashboard widget (the hour-by-hour signal of today and the next days) and the **Condition on
+Ecowatt (France)** scene condition ("Continue scene if the network is" ok, warning or critical, for
+the hour the scene runs). Gladys gets these data through its own servers (the Gladys Plus ones),
+with no subscription and no account to create. Gladys has no EcoWatt device and no EcoWatt trigger.
+
+- **To see EcoWatt on the dashboard**, the Gladys widget is enough: no need to fill in a key here.
+- **The EcoWatt part of this integration** is for those who want EcoWatt in their **scenes**: a
+  device (today, tomorrow, current hour) with its history and the native "A device changes state"
+  trigger, and the **EcoWatt alert announced** trigger, which starts a scene as soon as an orange or
+  red day is announced. It reads RTE directly with your own key, without going through the Gladys
+  servers.
+- **éCO2mix** (CO₂ intensity, production mix, national consumption) only exists in this
+  integration.
+
 ## Requirements
 
 - Gladys Assistant 5.1.0 or later.
