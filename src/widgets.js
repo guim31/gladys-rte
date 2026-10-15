@@ -1,169 +1,169 @@
 // -----------------------------------------------------------------------------
-// Dashboard widgets (SDK v0.14+, Gladys 5.1+).
+// The "French power grid" dashboard widget: the CO₂ intensity, the national
+// consumption and the low-carbon share as tiles, the EcoWatt signals of today
+// and tomorrow (with a key), the 24-hour CO₂ curve from the history Gladys
+// keeps (once the device is added), and the mix as bars, one row per source.
 //
-// A widget puts the integration's own data on the Gladys dashboard without a
-// dedicated core widget. The manifest `widgets` field declares its identity
-// (key, label, icon, optional per-instance `settings`); at runtime the
-// integration returns a DECLARATIVE content — `text`, `value`, `gauge`,
-// `status`, `chart`, `card-list`, `image`, `button` — that the core renders
-// with its own theme, dark mode and translations. No HTML, no CSS.
-//
-// Each entry of WIDGETS is keyed by the widget `key` and exposes:
-//   - get(gladys, { settings, language, units, config }): the content,
-//     registered by index.js with `gladys.onWidgetGet(key, ...)`;
-//   - action(gladys, { actionKey, params, settings, config }) (optional): a
-//     tapped `button` carrying an `action`, registered with
-//     `gladys.onWidgetAction`.
-//
-// Check your contents in the tests with `validateWidgetContent` (exported by
-// the SDK, see test/widgets.test.js), or run with DEBUG=gladys-integration-sdk
-// to have the SDK log every violation of the vocabulary and the budget.
+// The core vocabulary has no bar list: each row of the `status` component
+// carries a ten-cell text bar ("███████░░░ 68 %"), the only way to draw the
+// mix as bars in a card. Budget (core): 8 components, 6 tiles, 1 focal,
+// 1 status, 2 texts — this content uses at most 5 tiles, 1 chart, 1 status
+// and 1 caption, in the order of importance (the core drops from the end).
 // -----------------------------------------------------------------------------
 
 import {
-  createLogger,
-  DEVICE_FEATURE_CATEGORIES,
-  DEVICE_TRANSPORTS,
   WIDGET_COLORS,
+  WIDGET_CHART_INTERVALS,
+  WIDGET_CHART_TYPES,
 } from '@gladysassistant/integration-sdk';
-import { identifyDevice } from './devices/index.js';
-import { weatherStation } from './devices/weatherStation.js';
-import { plug } from './devices/plug.js';
-import { light } from './devices/light.js';
+import { MESSAGES, TEXT, levelText, pick } from './i18n.js';
 
-const logger = createLogger({ name: 'widgets' });
+export const WIDGET_KEY = 'grid';
 
-// Widget key, as declared in the manifest `widgets` field.
-export const DEMO_STATUS_WIDGET = 'demo_status';
+/** The content is cached by the core: refetched every 5 minutes at most. */
+export const WIDGET_TTL_SECONDS = 300;
 
-// Keys of the `button` actions the demo_status content declares.
-const DEMO_STATUS_ACTIONS = { IDENTIFY_LIGHT: 'identify_light' };
-
-// How the plug transport reads in the status list.
-const TRANSPORT_STATUS = {
-  [DEVICE_TRANSPORTS.LOCAL]: { value: { en: 'Local', fr: 'Locale' }, color: WIDGET_COLORS.SUCCESS },
-  [DEVICE_TRANSPORTS.CLOUD]: { value: { en: 'Cloud', fr: 'Cloud' }, color: WIDGET_COLORS.INFO },
-  [DEVICE_TRANSPORTS.UNREACHABLE]: {
-    value: { en: 'Unreachable', fr: 'Injoignable' },
-    color: WIDGET_COLORS.DANGER,
-  },
+const LEVEL_COLORS = {
+  1: WIDGET_COLORS.SUCCESS,
+  2: WIDGET_COLORS.WARNING,
+  3: WIDGET_COLORS.DANGER,
 };
 
-// A live tile references a feature by its external_id: read it from the
-// discovery payload itself, so the widget and the device never disagree.
-function featureExternalId(gladys, config, blueprint, category) {
-  const device = blueprint.buildDevice(gladys, config);
-  return device.features.find((feature) => feature.category === category).external_id;
-}
+/** Rows of the mix: source key → its text and the color of its dot. */
+const MIX_ROWS = [
+  ['nuclear', TEXT.nuclear, WIDGET_COLORS.SUCCESS],
+  ['hydro', TEXT.hydro, WIDGET_COLORS.SUCCESS],
+  ['wind', TEXT.wind, WIDGET_COLORS.SUCCESS],
+  ['solar', TEXT.solar, WIDGET_COLORS.SUCCESS],
+  ['bioenergy', TEXT.bioenergy, WIDGET_COLORS.SUCCESS],
+  ['gas', TEXT.gas, WIDGET_COLORS.WARNING],
+  ['coal', TEXT.coal, WIDGET_COLORS.DANGER],
+  ['oil', TEXT.oil, WIDGET_COLORS.DANGER],
+];
 
-function plugConnectionStatus(gladys, config) {
-  const { transport, degraded } = plug.transport(gladys, config);
-  const { value, color } = TRANSPORT_STATUS[transport];
-  if (degraded) {
-    return {
-      value: { en: `${value.en} (degraded mode)`, fr: `${value.fr} (mode dégradé)` },
-      color: WIDGET_COLORS.WARNING,
-    };
+/** Same thresholds as the Gladys badge of the grid carbon category. */
+export function co2Color(co2) {
+  if (co2 < 150) {
+    return WIDGET_COLORS.SUCCESS;
   }
-  return { value, color };
+  return co2 < 400 ? WIDGET_COLORS.WARNING : WIDGET_COLORS.DANGER;
 }
 
-export const WIDGETS = {
-  [DEMO_STATUS_WIDGET]: {
-    // `settings` holds the per-instance values of the declared `settings`
-    // (none here); `language` and `units` are those of the user viewing the
-    // dashboard, for the values you format yourself. Multi-language objects
-    // (`{ en, fr }`) are picked by the core, like everywhere else.
-    async get(gladys, { config }) {
-      logger.debug(`onWidgetGet <- ${DEMO_STATUS_WIDGET}`);
-      return {
-        // Reload policy: the computed parts below only change with the
-        // config, and index.js nudges the widget on every (re)connection and
-        // config update (see refreshWidgets) — the TTL is just a safety net.
-        ttl_seconds: 300,
-        components: [
-          // Device-bound tiles: LIVE, they follow the published states over
-          // the core's real-time path. No TTL, no nudge involved.
-          {
-            type: 'value',
-            label: { en: 'Temperature', fr: 'Température' },
-            icon: 'thermometer',
-            device_feature: featureExternalId(
-              gladys,
-              config,
-              weatherStation,
-              DEVICE_FEATURE_CATEGORIES.TEMPERATURE_SENSOR,
-            ),
-          },
-          {
-            type: 'value',
-            label: { en: 'Office plug', fr: 'Prise du bureau' },
-            icon: 'zap',
-            device_feature: featureExternalId(
-              gladys,
-              config,
-              plug,
-              DEVICE_FEATURE_CATEGORIES.ENERGY_SENSOR,
-            ),
-          },
-          // Computed rows: what the integration knows that no device feature
-          // carries. Served from the core cache until the TTL or a nudge.
-          {
-            type: 'status',
-            items: [
-              {
-                label: { en: 'Plug connection', fr: 'Connexion de la prise' },
-                icon: 'wifi',
-                ...plugConnectionStatus(gladys, config),
-              },
-              {
-                label: { en: 'Observed location', fr: 'Position observée' },
-                icon: 'map-pin',
-                value: `${config.latitude.toFixed(2)}, ${config.longitude.toFixed(2)}`,
-                color: WIDGET_COLORS.NEUTRAL,
-              },
-            ],
-          },
-          // `params` are declared HERE and sent back as-is: the handler never
-          // receives user input (a dashboard can hang on a public wall).
-          {
-            type: 'button',
-            label: { en: 'Identify the light', fr: 'Identifier la lampe' },
-            icon: 'eye',
-            style: 'secondary',
-            action: {
-              key: DEMO_STATUS_ACTIONS.IDENTIFY_LIGHT,
-              params: { device: light.deviceExternalId(gladys) },
-            },
-          },
-        ],
-      };
-    },
+/** "███████░░░" for 68 %. */
+export function bar(percent) {
+  const cells = Math.max(0, Math.min(10, Math.round(Math.abs(percent) / 10)));
+  return '█'.repeat(cells) + '░'.repeat(10 - cells);
+}
 
-    // Resolve an optional toast (string or multi-language object, ≤ 200
-    // characters). After a successful action the core drops the cached
-    // content and every open dashboard refetches it: no nudge needed.
-    async action(gladys, { actionKey, params, config }) {
-      logger.info(`onWidgetAction <- ${DEMO_STATUS_WIDGET}.${actionKey}`);
-      if (actionKey === DEMO_STATUS_ACTIONS.IDENTIFY_LIGHT) {
-        return identifyDevice(gladys, params.device, config);
-      }
-      // Throwing acks the action as failed: the message reaches the user.
-      throw new Error(`Unknown widget action: ${actionKey}`);
-    },
-  },
-};
+/** 68 → "68 %", 3.4 → "3,4 %" in French: a decimal under 10 %. */
+function percentText(value, language) {
+  const shown = Math.abs(value) < 10 ? Math.round(value * 10) / 10 : Math.round(value);
+  return `${shown.toLocaleString(language)} %`;
+}
 
 /**
- * Freshness nudge: ask the core to re-pull every widget NOW instead of
- * waiting for the content TTL. Call it when you KNOW a computed content
- * changed (here: the config, which drives the plug transport and the observed
- * location) — and after every (re)connection, since the nudges are
- * fire-and-forget: rate-limited core-side to 1 per 10 s per widget, dropped
- * silently while disconnected.
+ * Build the widget content.
+ * @param {object} options
+ * @param {ReturnType<import('./eco2mix.js').parseMixRecord> | null} options.mix fresh enough to show
+ * @param {{ today: number | null, tomorrow: number | null } | null} options.ecowatt null without a key
+ * @param {string | null} options.co2Feature the CO₂ feature external_id, once the device exists
+ * @param {boolean} options.failing éCO2mix cannot be read right now
+ * @param {string} options.language
+ * @param {string} [options.timeZone] for the time of the figures (Gladys' TZ by default)
  */
-export function refreshWidgets(gladys) {
-  for (const key of Object.keys(WIDGETS)) {
-    gladys.requestWidgetRefresh(key);
+export function buildWidgetContent({ mix, ecowatt, co2Feature, failing, language, timeZone }) {
+  const components = [];
+  if (mix) {
+    components.push(
+      {
+        type: 'value',
+        label: pick(TEXT.co2, language),
+        value: Math.round(mix.co2),
+        unit: 'g/kWh',
+        icon: 'cloud',
+        color: co2Color(mix.co2),
+      },
+      {
+        type: 'value',
+        label: pick(TEXT.consumption, language),
+        value: Number((mix.consumptionMw / 1000).toFixed(1)),
+        unit: 'GW',
+        icon: 'zap',
+      },
+      {
+        type: 'value',
+        label: pick(TEXT.lowCarbon, language),
+        value: Math.round(mix.lowCarbonPercent),
+        unit: '%',
+        icon: 'feather',
+      },
+    );
   }
+  if (ecowatt) {
+    for (const [level, label] of [
+      [ecowatt.today, TEXT.ecowattToday],
+      [ecowatt.tomorrow, TEXT.ecowattTomorrow],
+    ]) {
+      if (levelText(level)) {
+        components.push({
+          type: 'value',
+          label: pick(label, language),
+          value: pick(levelText(level), language),
+          icon: 'activity',
+          color: LEVEL_COLORS[level],
+        });
+      }
+    }
+  }
+  if (co2Feature) {
+    components.push({
+      type: 'chart',
+      device_features: [co2Feature],
+      interval: WIDGET_CHART_INTERVALS.LAST_DAY,
+      chart_type: WIDGET_CHART_TYPES.BAR,
+      title: pick(TEXT.co2Chart, language),
+      unit: 'g/kWh',
+    });
+  }
+  if (mix) {
+    const rows = MIX_ROWS.map(([key, text, color]) => ({
+      label: pick(text, language),
+      percent: mix.sharesPercent[key],
+      color,
+    })).filter((row) => row.percent >= 0.5);
+    rows.sort((a, b) => b.percent - a.percent);
+    if (Math.abs(mix.exchangesPercent) >= 0.5) {
+      rows.push({
+        label: pick(mix.exchangesPercent > 0 ? TEXT.imports : TEXT.exports, language),
+        percent: Math.abs(mix.exchangesPercent),
+        color: WIDGET_COLORS.INFO,
+      });
+    }
+    components.push({
+      type: 'status',
+      items: rows.slice(0, 10).map((row) => ({
+        label: row.label,
+        value: `${bar(row.percent)} ${percentText(row.percent, language)}`,
+        color: row.color,
+      })),
+    });
+    const time = new Date(mix.at).toLocaleTimeString(language, {
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+      ...(timeZone ? { timeZone } : {}),
+    });
+    components.push({
+      type: 'text',
+      variant: 'caption',
+      text: pick(MESSAGES.updatedAt(time), language),
+    });
+  } else {
+    components.push({
+      type: 'text',
+      variant: 'body',
+      text: pick(failing ? TEXT.unreachable : TEXT.waiting, language),
+    });
+  }
+  return { ttl_seconds: WIDGET_TTL_SECONDS, components };
 }

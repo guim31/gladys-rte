@@ -31,16 +31,22 @@ pushing.
 ## Architecture
 
 ```
-index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+index.js                          SDK wiring only: src/app.js registers the handlers before connect()
+src/app.js                        every SDK handler, the minute timer, reads, states, trigger, status
+src/eco2mix.js                    éCO2mix client (ODRÉ v2.1) + parsing of a row into shares
+src/ecowatt.js                    EcoWatt v5 client: OAuth2 token, 15-min quota, signals, French time
+src/http.js                       fetch with timeout, errors that never carry the request
+src/devices.js                    the two devices: features, values (names in src/i18n.js)
+src/widgets.js                    dashboard widget `grid` (manifest `widgets`)
+src/i18n.js                       every text and feature name, in en, fr, de, es
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
+src/store.js                      /data/rte-state.json (EcoWatt quota, last signals, alerts announced)
+src/issues.js                     a lasting failure logged once, its recovery once
+scripts/probe.mjs                 read-only check of the real APIs (needs the network)
 gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (en and fr mandatory)
 test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+                                  and a fake RTE (test/helpers/world.js, test/fixtures)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +76,10 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** exists in four languages (English, French, German,
+  Spanish): action messages, manifest texts, feature names, widget texts, and
+  `docs/en.md`, `docs/fr.md`, `docs/de.md`, `docs/es.md`, kept in sync.
+  `test/i18n.test.js` enforces it.
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -197,6 +205,47 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
 - Les filtres de scène ne font qu'égalité et appartenance : un seuil reste le travail d'un capteur.
 - **Les clés de widgets, de déclencheurs et d'actions sont figées une fois publiées.**
 - `gladys_version` `>=5.1.0` dès qu'il y a widgets, déclencheurs ou actions de scène.
+
+## RTE (propre à ce dépôt)
+
+- **Sources.** éCO2mix : `https://odre.opendatasoft.com/api/explore/v2.1/catalog/datasets/eco2mix-national-tr/records`
+  (sans clé, `opendata.reseaux-energies.fr` y renvoie). EcoWatt v5 : jeton
+  `https://digital.iservices.rte-france.com/token/oauth/` (Basic `id:secret`, jeton de 2 h), puis
+  `/open_api/ecowatt/v5/signals` (et `/sandbox/signals`, sans quota, pour essayer une clé).
+- **Session sans réseau vers RTE** (proxy : `odre.opendatasoft.com`, `opendata.reseaux-energies.fr`,
+  `data.rte-france.com`, `digital.iservices.rte-france.com` refusés le 15/10/2026). Les fixtures de
+  `test/fixtures/` suivent les formats documentés, pas une vraie réponse : les rafraîchir avec
+  `node scripts/probe.mjs --save DIR` depuis une machine qui a le réseau.
+- **Quota EcoWatt : un appel aux signaux par 15 min et par application**, 429 sinon (avec
+  `Retry-After`). Le client refuse d'appeler plus tôt (`QuotaError`, rien n'est envoyé), garde
+  l'heure du dernier appel dans `/data` (un redémarrage ne remet pas le compteur à zéro) ; le jeton
+  ne compte pas dans le quota. Le bouton de test vérifie le jeton seul si le quota ne permet pas un
+  appel.
+- **Lignes éCO2mix vides** : les quarts d'heure du jour existent d'avance, production à `null`, et
+  les derniers arrivent avec environ une heure de retard. On demande `taux_co2 is not null`, tri
+  `date_heure desc`, et on garde la plus récente ligne **complète**. Un mix de plus de 3 h n'est pas
+  publié.
+- **Jours et heures EcoWatt en heure de Paris** (`jour` = date française, `pas` = heure locale),
+  quel que soit le `TZ` de Gladys : `parisTime()` via `Intl`, jamais `getHours()`.
+- **Couples choisis** : `grid-carbon-sensor` (natif depuis Gladys 5.1.0 : intensité, parts bas
+  carbone et renouvelable, pastille colorée par le front) ; consommation en `energy-sensor/power`
+  **en kW** (ni MW ni GW dans Gladys) ; parts par filière en `counter-sensor/integer` + `percent`
+  (pas de capteur de pourcentage générique, comme le partage bloqué de gladys-pihole) ; EcoWatt en
+  `risk/integer` avec les valeurs de RTE (0 à 3) : le badge du front lit 0 « Pas de risque » (vert),
+  1 « Faible » (**jaune**), 2 « Moyen » (orange), 3 « Élevé » (rouge). Un jour vert est donc jaune :
+  documenté, choix assumé pour garder les nombres de RTE dans les scènes.
+- **Déclencheur `ecowatt_alert`** : une fois par (date, niveau), mémorisé dans `/data`, dates
+  passées purgées ; un envoi refusé par Gladys n'est pas mémorisé (renvoyé à la lecture suivante).
+  Filtre `days_ahead` en `select` aux valeurs `"0"`…`"3"` : le cœur convertit le nombre de
+  l'événement en chaîne pour le filtre.
+- **Widget** : le vocabulaire n'a pas de barres ; le mix « en barres » passe par les lignes d'un
+  `status` portant une barre texte de dix cases (`███████░░░ 68 %`, 40 caractères au plus). La courbe
+  de CO₂ est un `chart` lié à la fonctionnalité (`device_features`), seulement une fois l'appareil
+  ajouté (sinon le cœur jetterait le composant).
+- **Heartbeat du SDK** : `publishChangedStates(…, { heartbeat })` date avec `Date.now()`, pas avec
+  l'horloge injectée : un test du heartbeat doit simuler `Date` (`t.mock.timers`).
+- **Garde-fou du tutoiement** : la regex attrape aussi « Sie » = « ils/elle » en début de phrase.
+  Reformuler (« Die Integration… ») plutôt que l'assouplir.
 
 ## Store
 
