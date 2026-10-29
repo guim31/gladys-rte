@@ -421,7 +421,7 @@ export function registerHandlers(
       logger.error(`Publishing the devices failed: ${err.message}`);
     }
     if (!hasEcowatt(config)) {
-      logger.info('EcoWatt: no key in the configuration, éCO2mix only');
+      logger.info('EcoWatt: no key in the configuration, no EcoWatt device');
     }
     schedule();
     await tick({ force: true });

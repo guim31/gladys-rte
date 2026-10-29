@@ -212,10 +212,10 @@ export const TEXT = {
     es: 'éCO2mix (RTE) no responde: nuevo intento en 15 min.',
   },
   ecowattNotConfigured: {
-    en: 'EcoWatt: no key given, only the éCO2mix device is offered.',
-    fr: "EcoWatt : aucune clé renseignée, seul l'appareil éCO2mix est proposé.",
-    de: 'EcoWatt: kein Schlüssel angegeben, nur das éCO2mix-Gerät wird angeboten.',
-    es: 'EcoWatt: no se ha indicado ninguna clave, solo se ofrece el dispositivo éCO2mix.',
+    en: 'EcoWatt: no key given, no EcoWatt device.',
+    fr: "EcoWatt : aucune clé renseignée, pas d'appareil EcoWatt.",
+    de: 'EcoWatt: kein Schlüssel angegeben, kein EcoWatt-Gerät.',
+    es: 'EcoWatt: no se ha indicado ninguna clave, sin dispositivo EcoWatt.',
   },
   ecogazDown: {
     en: 'EcoGaz (ODRÉ) does not answer: next try in an hour.',
