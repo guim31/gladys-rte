@@ -270,3 +270,20 @@ test('the test action reports EcoGaz and the regions', async (t) => {
   assert.match(text, /EcoGaz : signal du jour : Vert/);
   assert.match(text, /3 région\(s\) lue\(s\) sur 3/);
 });
+
+test('an EcoGaz reading from the action beside a tick announces a day once', async (t) => {
+  const rte = createFakeRte();
+  const world = await regionalWorld({ rte });
+  t.after(() => world.app.stop());
+  rte.ecogaz = gasWith({ '2026-10-29': 4 });
+  // Gladys takes its time to accept the event: the two readings overlap.
+  const publish = world.gladys.publishSceneEvent.bind(world.gladys);
+  world.gladys.publishSceneEvent = async (key, data) => {
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    return publish(key, data);
+  };
+  world.clock.advance(ECOGAZ_PERIOD_MS);
+  await Promise.all([world.app.tick(), world.fake.action(ACTION_KEY, {})]);
+  assert.equal(world.rte.count('ecogaz'), 3, 'both read EcoGaz');
+  assert.equal(world.fake.sceneEvents.filter((e) => e.key === GAS_TRIGGER_KEY).length, 1);
+});

@@ -89,7 +89,7 @@ Sans clé, l'intégration fonctionne avec éCO2mix seul.
 
 **Régions à suivre** (facultatif) : cochez les régions voulues, un appareil chacune (nommé
 « Électricité » suivi de la région). Les douze régions de France continentale sont proposées ; RTE
-ne publie pas la Corse. L'appareil **EcoGaz** est proposé à tous.
+ne publie pas la Corse. L'appareil **EcoGaz** est proposé à tous. Décocher une région arrête son appareil, qui reste dans Gladys jusqu'à ce que vous le supprimiez.
 
 ### Bouton « Tester la connexion à RTE »
 
@@ -248,3 +248,4 @@ Licence Ouverte Etalab 2.0.
 - Pas de taux de CO₂ par région, ni de Corse : RTE ne les publie pas.
 - Les chiffres régionaux arrivent avec environ une heure de retard, comme les nationaux.
 - EcoGaz est un signal national (France continentale), mis à jour une fois par jour.
+- EcoGaz suit les jours calendaires à l'heure de Paris ; la journée gazière des opérateurs court de 6 h à 6 h.

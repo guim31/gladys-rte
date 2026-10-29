@@ -225,8 +225,18 @@ export function registerHandlers(
     }
   }
 
-  /** Fire the EcoGaz trigger for today or tomorrow newly orange or red, once per level. */
-  async function announceGasAlerts(read) {
+  /**
+   * Fire the EcoGaz trigger for today or tomorrow newly orange or red, once
+   * per level. Serialized: a reading from the action or a device added may
+   * run beside a tick, and must not announce the same day twice.
+   */
+  let gasAnnouncing = Promise.resolve();
+  function announceGasAlerts(read) {
+    gasAnnouncing = gasAnnouncing.then(() => announceGasAlertsNow(read));
+    return gasAnnouncing;
+  }
+
+  async function announceGasAlertsNow(read) {
     const today = parisTime(now()).date;
     const announced = Object.fromEntries(
       Object.entries(persisted.gasAnnounced).filter(([date]) => date >= today),
@@ -255,8 +265,11 @@ export function registerHandlers(
         gladysIssues.fail('scene-event', `EcoGaz alert not sent to Gladys: ${err.message}`);
       }
     }
-    persisted.gasAnnounced = announced;
-    store.save(persisted);
+    // Written only on change: EcoGaz is read every hour.
+    if (JSON.stringify(announced) !== JSON.stringify(persisted.gasAnnounced)) {
+      persisted.gasAnnounced = announced;
+      store.save(persisted);
+    }
   }
 
   /** Fire the trigger for every day newly orange or red, once per level. */

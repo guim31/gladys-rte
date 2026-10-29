@@ -86,7 +86,7 @@ Ohne Schlüssel funktioniert die Integration nur mit éCO2mix.
 
 **Regionen** (optional): Hake die gewünschten Regionen an, je ein Gerät (benannt „Strom“ und die
 Region). Die zwölf Regionen des französischen Festlands werden angeboten; Korsika veröffentlicht RTE
-nicht. Das **EcoGaz**-Gerät wird allen angeboten.
+nicht. Das **EcoGaz**-Gerät wird allen angeboten. Wenn du eine Region abwählst, wird ihr Gerät nicht mehr aktualisiert; es bleibt in Gladys, bis du es löschst.
 
 ### Schaltfläche „Verbindung zu RTE testen“
 
@@ -242,3 +242,4 @@ Etalab-Lizenz 2.0.
 - Keine CO₂-Intensität pro Region und kein Korsika: RTE veröffentlicht sie nicht.
 - Die regionalen Werte kommen etwa eine Stunde verspätet, wie die landesweiten.
 - EcoGaz ist ein landesweites Signal (französisches Festland), einmal am Tag aktualisiert.
+- EcoGaz folgt den Kalendertagen nach Pariser Zeit; der Gastag der Netzbetreiber läuft von 6 bis 6 Uhr.

@@ -87,7 +87,7 @@ Sin clave, la integración funciona solo con éCO2mix.
 
 **Regiones a seguir** (opcional): marque las regiones que desee, un dispositivo cada una (llamado
 «Electricidad» seguido de la región). Se ofrecen las doce regiones de Francia continental; RTE no
-publica Córcega. El dispositivo **EcoGaz** se ofrece a todos.
+publica Córcega. El dispositivo **EcoGaz** se ofrece a todos. Desmarcar una región detiene su dispositivo, que permanece en Gladys hasta que usted lo elimine.
 
 ### Botón «Probar la conexión con RTE»
 
@@ -246,3 +246,4 @@ Abierta Etalab 2.0.
 - Sin intensidad de CO₂ por región ni Córcega: RTE no las publica.
 - Las cifras regionales llegan con alrededor de una hora de retraso, como las nacionales.
 - EcoGaz es una señal nacional (Francia continental), actualizada una vez al día.
+- EcoGaz sigue los días naturales en hora de París; el día gasista de los operadores va de las 6:00 a las 6:00.

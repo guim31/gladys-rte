@@ -82,7 +82,7 @@ Without a key, the integration works with éCO2mix alone.
 
 **Regions to follow** (optional): tick the regions you want, one device each (named "Electricity"
 followed by the region). The twelve regions of mainland France are offered; Corsica is not
-published by RTE. The **EcoGaz** device is offered to everyone.
+published by RTE. The **EcoGaz** device is offered to everyone. Unticking a region stops its device, which stays in Gladys until you delete it.
 
 ### "Test the connection to RTE" button
 
@@ -232,3 +232,4 @@ device and its trigger. Both are open data under the Etalab open licence 2.0.
 - No CO₂ intensity per region, and no Corsica: RTE does not publish them.
 - The regional figures arrive about an hour late, like the national ones.
 - EcoGaz is a national signal (mainland France), updated once a day.
+- EcoGaz follows calendar days in Paris time; the gas day of the operators runs from 06:00 to 06:00.

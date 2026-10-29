@@ -123,12 +123,7 @@
         },
         {
           "value": "28",
-          "label": {
-            "en": "Normandie",
-            "fr": "Normandie",
-            "de": "Normandie",
-            "es": "Normandie"
-          }
+          "label": { "en": "Normandie", "fr": "Normandie", "de": "Normandie", "es": "Normandie" }
         },
         {
           "value": "32",
@@ -141,12 +136,7 @@
         },
         {
           "value": "44",
-          "label": {
-            "en": "Grand Est",
-            "fr": "Grand Est",
-            "de": "Grand Est",
-            "es": "Grand Est"
-          }
+          "label": { "en": "Grand Est", "fr": "Grand Est", "de": "Grand Est", "es": "Grand Est" }
         },
         {
           "value": "52",
@@ -159,12 +149,7 @@
         },
         {
           "value": "53",
-          "label": {
-            "en": "Bretagne",
-            "fr": "Bretagne",
-            "de": "Bretagne",
-            "es": "Bretagne"
-          }
+          "label": { "en": "Bretagne", "fr": "Bretagne", "de": "Bretagne", "es": "Bretagne" }
         },
         {
           "value": "75",
@@ -177,12 +162,7 @@
         },
         {
           "value": "76",
-          "label": {
-            "en": "Occitanie",
-            "fr": "Occitanie",
-            "de": "Occitanie",
-            "es": "Occitanie"
-          }
+          "label": { "en": "Occitanie", "fr": "Occitanie", "de": "Occitanie", "es": "Occitanie" }
         },
         {
           "value": "84",
@@ -224,39 +204,19 @@
       "options": [
         {
           "value": "en",
-          "label": {
-            "en": "English",
-            "fr": "Anglais",
-            "de": "Englisch",
-            "es": "Inglés"
-          }
+          "label": { "en": "English", "fr": "Anglais", "de": "Englisch", "es": "Inglés" }
         },
         {
           "value": "fr",
-          "label": {
-            "en": "French",
-            "fr": "Français",
-            "de": "Französisch",
-            "es": "Francés"
-          }
+          "label": { "en": "French", "fr": "Français", "de": "Französisch", "es": "Francés" }
         },
         {
           "value": "de",
-          "label": {
-            "en": "German",
-            "fr": "Allemand",
-            "de": "Deutsch",
-            "es": "Alemán"
-          }
+          "label": { "en": "German", "fr": "Allemand", "de": "Deutsch", "es": "Alemán" }
         },
         {
           "value": "es",
-          "label": {
-            "en": "Spanish",
-            "fr": "Espagnol",
-            "de": "Spanisch",
-            "es": "Español"
-          }
+          "label": { "en": "Spanish", "fr": "Espagnol", "de": "Spanisch", "es": "Español" }
         }
       ]
     }
@@ -298,12 +258,7 @@
         {
           "key": "color",
           "type": "multi_select",
-          "label": {
-            "en": "Signal",
-            "fr": "Signal",
-            "de": "Signal",
-            "es": "Señal"
-          },
+          "label": { "en": "Signal", "fr": "Signal", "de": "Signal", "es": "Señal" },
           "options": [
             {
               "value": "orange",
@@ -337,21 +292,11 @@
           "options": [
             {
               "value": "0",
-              "label": {
-                "en": "Today",
-                "fr": "Aujourd'hui",
-                "de": "Heute",
-                "es": "Hoy"
-              }
+              "label": { "en": "Today", "fr": "Aujourd'hui", "de": "Heute", "es": "Hoy" }
             },
             {
               "value": "1",
-              "label": {
-                "en": "Tomorrow",
-                "fr": "Demain",
-                "de": "Morgen",
-                "es": "Mañana"
-              }
+              "label": { "en": "Tomorrow", "fr": "Demain", "de": "Morgen", "es": "Mañana" }
             },
             {
               "value": "2",
@@ -445,12 +390,7 @@
         {
           "key": "color",
           "type": "multi_select",
-          "label": {
-            "en": "Signal",
-            "fr": "Signal",
-            "de": "Signal",
-            "es": "Señal"
-          },
+          "label": { "en": "Signal", "fr": "Signal", "de": "Signal", "es": "Señal" },
           "options": [
             {
               "value": "orange",
@@ -484,21 +424,11 @@
           "options": [
             {
               "value": "0",
-              "label": {
-                "en": "Today",
-                "fr": "Aujourd'hui",
-                "de": "Heute",
-                "es": "Hoy"
-              }
+              "label": { "en": "Today", "fr": "Aujourd'hui", "de": "Heute", "es": "Hoy" }
             },
             {
               "value": "1",
-              "label": {
-                "en": "Tomorrow",
-                "fr": "Demain",
-                "de": "Morgen",
-                "es": "Mañana"
-              }
+              "label": { "en": "Tomorrow", "fr": "Demain", "de": "Morgen", "es": "Mañana" }
             }
           ]
         }
