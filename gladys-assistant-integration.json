@@ -8,8 +8,8 @@
     "de": "Französisches Netz live, landesweit und regional: CO₂, Strommix, EcoWatt- und EcoGaz-Warnungen.",
     "es": "Red francesa en directo, nacional y regional: CO₂, mix eléctrico, alertas EcoWatt y EcoGaz."
   },
-  "version": "1.0.2",
-  "docker_image": "ghcr.io/guim31/gladys-rte:1.0.2",
+  "version": "1.1.0",
+  "docker_image": "ghcr.io/guim31/gladys-rte:1.1.0",
   "gladys_version": ">=5.1.0",
   "cover_image": "https://raw.githubusercontent.com/guim31/gladys-rte/main/cover.png",
   "categories": ["energy"],
