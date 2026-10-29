@@ -36,6 +36,17 @@ export const NAMES = {
     today: 'EcoWatt today',
     tomorrow: 'EcoWatt tomorrow',
     current_hour: 'EcoWatt this hour',
+    region: 'Electricity',
+    regional_consumption: 'Regional consumption',
+    regional_production: 'Regional production',
+    regional_exchanges: 'Exchanges (import + / export −)',
+    coverage: 'Coverage (production / consumption)',
+    thermal_share: 'Fossil thermal share',
+    ecogaz: 'EcoGaz',
+    gas_today: 'EcoGaz today',
+    gas_tomorrow: 'EcoGaz tomorrow',
+    gas_day_2: 'EcoGaz in 2 days',
+    gas_day_3: 'EcoGaz in 3 days',
   },
   fr: {
     grid: 'Réseau électrique français',
@@ -55,6 +66,17 @@ export const NAMES = {
     today: "EcoWatt aujourd'hui",
     tomorrow: 'EcoWatt demain',
     current_hour: 'EcoWatt heure en cours',
+    region: 'Électricité',
+    regional_consumption: 'Consommation régionale',
+    regional_production: 'Production régionale',
+    regional_exchanges: 'Échanges (import + / export −)',
+    coverage: 'Taux de couverture',
+    thermal_share: 'Part du thermique fossile',
+    ecogaz: 'EcoGaz',
+    gas_today: "EcoGaz aujourd'hui",
+    gas_tomorrow: 'EcoGaz demain',
+    gas_day_2: 'EcoGaz dans 2 jours',
+    gas_day_3: 'EcoGaz dans 3 jours',
   },
   de: {
     grid: 'Französisches Stromnetz',
@@ -74,6 +96,17 @@ export const NAMES = {
     today: 'EcoWatt heute',
     tomorrow: 'EcoWatt morgen',
     current_hour: 'EcoWatt aktuelle Stunde',
+    region: 'Strom',
+    regional_consumption: 'Regionaler Verbrauch',
+    regional_production: 'Regionale Erzeugung',
+    regional_exchanges: 'Austausch (Import + / Export −)',
+    coverage: 'Deckungsgrad (Erzeugung / Verbrauch)',
+    thermal_share: 'Anteil fossile Wärmekraft',
+    ecogaz: 'EcoGaz',
+    gas_today: 'EcoGaz heute',
+    gas_tomorrow: 'EcoGaz morgen',
+    gas_day_2: 'EcoGaz in 2 Tagen',
+    gas_day_3: 'EcoGaz in 3 Tagen',
   },
   es: {
     grid: 'Red eléctrica francesa',
@@ -93,6 +126,17 @@ export const NAMES = {
     today: 'EcoWatt hoy',
     tomorrow: 'EcoWatt mañana',
     current_hour: 'EcoWatt hora actual',
+    region: 'Electricidad',
+    regional_consumption: 'Consumo regional',
+    regional_production: 'Producción regional',
+    regional_exchanges: 'Intercambios (import. + / export. −)',
+    coverage: 'Cobertura (producción / consumo)',
+    thermal_share: 'Proporción térmica fósil',
+    ecogaz: 'EcoGaz',
+    gas_today: 'EcoGaz hoy',
+    gas_tomorrow: 'EcoGaz mañana',
+    gas_day_2: 'EcoGaz dentro de 2 días',
+    gas_day_3: 'EcoGaz dentro de 3 días',
   },
 };
 
@@ -168,11 +212,30 @@ export const TEXT = {
     es: 'éCO2mix (RTE) no responde: nuevo intento en 15 min.',
   },
   ecowattNotConfigured: {
-    en: 'EcoWatt: no key given, only the éCO2mix device is offered.',
-    fr: "EcoWatt : aucune clé renseignée, seul l'appareil éCO2mix est proposé.",
-    de: 'EcoWatt: kein Schlüssel angegeben, nur das éCO2mix-Gerät wird angeboten.',
-    es: 'EcoWatt: no se ha indicado ninguna clave, solo se ofrece el dispositivo éCO2mix.',
+    en: 'EcoWatt: no key given, no EcoWatt device.',
+    fr: "EcoWatt : aucune clé renseignée, pas d'appareil EcoWatt.",
+    de: 'EcoWatt: kein Schlüssel angegeben, kein EcoWatt-Gerät.',
+    es: 'EcoWatt: no se ha indicado ninguna clave, sin dispositivo EcoWatt.',
   },
+  ecogazDown: {
+    en: 'EcoGaz (ODRÉ) does not answer: next try in an hour.',
+    fr: "EcoGaz (ODRÉ) ne répond pas : nouvel essai dans l'heure.",
+    de: 'EcoGaz (ODRÉ) antwortet nicht: nächster Versuch in einer Stunde.',
+    es: 'EcoGaz (ODRÉ) no responde: nuevo intento dentro de una hora.',
+  },
+  ecogazNoToday: {
+    en: 'EcoGaz: no signal for today yet.',
+    fr: "EcoGaz : pas encore de signal pour aujourd'hui.",
+    de: 'EcoGaz: noch kein Signal für heute.',
+    es: 'EcoGaz: todavía no hay señal para hoy.',
+  },
+  regionalDown: {
+    en: 'éCO2mix regional (RTE) does not answer: next try in 15 min.',
+    fr: 'éCO2mix régional (RTE) ne répond pas : nouvel essai dans 15 min.',
+    de: 'éCO2mix regional (RTE) antwortet nicht: nächster Versuch in 15 Min.',
+    es: 'éCO2mix regional (RTE) no responde: nuevo intento en 15 min.',
+  },
+  yellow: { en: 'Yellow', fr: 'Jaune', de: 'Gelb', es: 'Amarillo' },
   ecowattKeyOk: {
     en: 'EcoWatt: key accepted.',
     fr: 'EcoWatt : clé acceptée.',
@@ -182,6 +245,8 @@ export const TEXT = {
 };
 
 const LEVEL_TEXT = { 1: TEXT.green, 2: TEXT.orange, 3: TEXT.red };
+/** EcoGaz levels 0 to 3 (src/ecogaz.js). */
+const GAS_LEVEL_TEXT = [TEXT.green, TEXT.yellow, TEXT.orange, TEXT.red];
 
 /** Texts built from a value. Each one returns the four languages. */
 export const MESSAGES = {
@@ -208,6 +273,18 @@ export const MESSAGES = {
     fr: `EcoWatt : clé acceptée (signaux relus dans ${minutes} min, RTE autorise un appel toutes les 15 min).`,
     de: `EcoWatt: Schlüssel akzeptiert (Signale in ${minutes} Min. erneut gelesen, RTE erlaubt einen Aufruf alle 15 Min.).`,
     es: `EcoWatt: clave aceptada (señales leídas de nuevo en ${minutes} min, RTE permite una llamada cada 15 min).`,
+  }),
+  ecogazToday: (level) => ({
+    en: `EcoGaz: signal of the day: ${GAS_LEVEL_TEXT[level]?.en ?? '?'}.`,
+    fr: `EcoGaz : signal du jour : ${GAS_LEVEL_TEXT[level]?.fr ?? '?'}.`,
+    de: `EcoGaz: Signal des Tages: ${GAS_LEVEL_TEXT[level]?.de ?? '?'}.`,
+    es: `EcoGaz: señal del día: ${GAS_LEVEL_TEXT[level]?.es ?? '?'}.`,
+  }),
+  regionsOk: (read, total) => ({
+    en: `éCO2mix regional: ${read} of ${total} regions read.`,
+    fr: `éCO2mix régional : ${read} région(s) lue(s) sur ${total}.`,
+    de: `éCO2mix regional: ${read} von ${total} Regionen gelesen.`,
+    es: `éCO2mix regional: ${read} de ${total} regiones leídas.`,
   }),
   updatedAt: (time) => ({
     en: `RTE éCO2mix · ${time}`,

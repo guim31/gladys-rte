@@ -1,4 +1,4 @@
-# RTE éCO2mix & EcoWatt
+# RTE éCO2mix, EcoWatt & EcoGaz
 
 Follow the French power grid in Gladys, as RTE publishes it in open data: how much CO₂ each
 kilowatt-hour produced right now emits, where the electricity comes from (nuclear, wind, solar,
@@ -27,6 +27,17 @@ The integration reads two RTE sources:
   cuts are possible if consumption does not go down.
 
 It adds two devices, a dashboard widget and an "EcoWatt alert announced" scene trigger.
+
+Since version 1.1, two more open sources, without a key:
+
+- **éCO2mix by region** (RTE): for each region you choose, the consumption, the production by
+  source, the exchanges with the neighbouring regions and the renewable share, every quarter-hour.
+- **EcoGaz** (GRTgaz and Teréga): the signal of the French gas network for today and the next days.
+  Green: normal. Yellow: high consumption. Orange: tight network. Red: very tight network, cuts of
+  large consumers may follow.
+
+They add one device per region, an **EcoGaz** device and an "EcoGaz alert announced" scene trigger.
+Both were tested against real answers of the ODRÉ open data portal.
 
 ### EcoWatt is already in Gladys
 
@@ -69,6 +80,10 @@ Without a key, the integration works with éCO2mix alone.
    is added and do not change afterwards.
 4. Save, then open the **Discovery** tab: add **French power grid** and, with a key, **EcoWatt**.
 
+**Regions to follow** (optional): tick the regions you want, one device each (named "Electricity"
+followed by the region). The twelve regions of mainland France are offered; Corsica is not
+published by RTE. The **EcoGaz** device is offered to everyone. Unticking a region stops its device, which stays in Gladys until you delete it.
+
 ### "Test the connection to RTE" button
 
 Reads éCO2mix at once and shows the CO₂ intensity of the last quarter-hour published. With a key,
@@ -109,6 +124,28 @@ Gladys shows them as a risk level: 0 "No risk", 1 "Low", 2 "Medium", 3 "High". A
 shows as a yellow "Low" badge: that is Gladys' color for a low risk, not an alert. The current hour
 changes on every full hour.
 
+### Electricity (by region)
+
+One device per region chosen, updated every quarter-hour:
+
+| Feature                             | What it measures                                                  |
+| ----------------------------------- | ----------------------------------------------------------------- |
+| Regional consumption                | The consumption of the region, in kW                              |
+| Regional production                 | What the plants of the region produce, in kW                      |
+| Exchanges (import + / export −)     | With the neighbouring regions and countries, in kW                |
+| Coverage (production / consumption) | Production out of consumption, in %: above 100 the region exports |
+| Low-carbon share, renewable…        | In % of the production of the region                              |
+| Nuclear share, wind share…          | The share of each source (fossil thermal included), in whole %    |
+
+RTE publishes no CO₂ intensity per region: a region's electricity also comes from its neighbours.
+
+### EcoGaz
+
+Four features: **EcoGaz today**, **tomorrow**, **in 2 days** and **in 3 days**. The values follow
+the colors of GRTgaz, minus one: 0 green, 1 yellow, 2 orange, 3 red. Gladys shows them as a risk
+level whose badge has the very same colors: 0 "No risk" green, 1 "Low" yellow, 2 "Medium" orange,
+3 "High" red.
+
 ## Widget
 
 The **French power grid** widget goes on the dashboard. It shows:
@@ -134,6 +171,11 @@ Information passed on to the scene actions: the signal (`orange` or `red`), the 
 To react to the CO₂ intensity, no dedicated trigger is needed: the native Gladys trigger "A device
 changes state" already compares the **CO₂ intensity** feature with a threshold.
 
+**EcoGaz alert announced**: the gas network turns orange or red **today or tomorrow**. Once per
+day and color, even after a restart. Filters: the **Signal** (orange, red) and the **Day
+concerned** (today, tomorrow). Information passed on: the signal (`orange` or `red`), the level
+(2 or 3), the date and in how many days (0 or 1).
+
 ## Scene examples
 
 - **Low CO₂ → start the dishwasher or the charge.** Trigger: "A device changes state", **CO₂
@@ -145,6 +187,8 @@ changes state" already compares the **CO₂ intensity** feature with a threshold
 - **Orange or red hour → delay the car charge.** Trigger: "A device changes state", **EcoWatt this
   hour** greater than or equal to 2. Action: turn the charging plug off. A second scene turns it
   back on when the value goes under 2.
+- **Gas network orange → lower the heating.** Trigger: **EcoGaz alert announced**, day concerned
+  today. Action: lower the gas boiler's thermostat by one degree and send a message.
 
 ## Reading pace and quotas
 
@@ -159,6 +203,10 @@ changes state" already compares the **CO₂ intensity** feature with a threshold
 
 The use of the data follows RTE's terms: ODRÉ's open licence for éCO2mix, the terms of use of the
 data.rte-france.com portal for EcoWatt.
+
+**éCO2mix by region** is read every quarter-hour once a region device is added: one call for all
+the regions. **EcoGaz** is read every hour (GRTgaz publishes once a day, around 11:00), for its
+device and its trigger. Both are open data under the Etalab open licence 2.0.
 
 ## Troubleshooting
 
@@ -181,3 +229,7 @@ data.rte-france.com portal for EcoWatt.
   0.5 %.
 - The RTE message passed on to scenes is in French, as RTE publishes it.
 - EcoWatt gives no CO₂ forecast: there is no forecast of the CO₂ intensity in this integration.
+- No CO₂ intensity per region, and no Corsica: RTE does not publish them.
+- The regional figures arrive about an hour late, like the national ones.
+- EcoGaz is a national signal (mainland France), updated once a day.
+- EcoGaz follows calendar days in Paris time; the gas day of the operators runs from 06:00 to 06:00.

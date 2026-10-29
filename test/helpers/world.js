@@ -14,7 +14,9 @@ import { registerHandlers } from '../../src/app.js';
 import { Store } from '../../src/store.js';
 import { ECO2MIX_URL } from '../../src/eco2mix.js';
 import { SIGNALS_URL, TOKEN_URL } from '../../src/ecowatt.js';
-import { deviceIds, GRID, ECOWATT } from '../../src/devices.js';
+import { REGIONAL_URL } from '../../src/regional.js';
+import { ECOGAZ_URL } from '../../src/ecogaz.js';
+import { deviceIds, regionIds, GRID, ECOWATT, ECOGAZ } from '../../src/devices.js';
 
 // The integration logs its lifecycle; keep the test output readable.
 process.env.LOG_LEVEL ??= 'silent';
@@ -25,6 +27,14 @@ const fixture = (name) =>
 export const ECO2MIX_BODY = fixture('eco2mix-national-tr.json');
 export const SIGNALS_BODY = fixture('ecowatt-signals.json');
 export const TOKEN_BODY = fixture('ecowatt-token.json');
+/** Real ODRÉ answers (28/10/2026): Île-de-France, Centre-Val de Loire, Occitanie. */
+export const REGIONAL_BODY = fixture('eco2mix-regional-tr.json');
+/** Real ODRÉ answer (28/10/2026): green from 26/10 to 02/11. */
+export const ECOGAZ_BODY = fixture('signal-ecogaz.json');
+/** 2026-10-29 01:45 in Paris (UTC+1): an hour after the last regional quarter-hour. */
+export const GAS_START = Date.UTC(2026, 9, 29, 0, 45, 0);
+/** The last complete quarter-hour of the regional fixture (00:45 in Paris). */
+export const REGIONAL_AT = '2026-10-28T23:45:00.000Z';
 
 /** 2026-10-14 15:20 in Paris (UTC+2): an hour after the last quarter-hour of éCO2mix. */
 export const START = Date.UTC(2026, 9, 14, 13, 20, 0);
@@ -60,6 +70,8 @@ export function createFakeRte() {
   const rte = {
     calls: [],
     eco2mix: () => json(200, ECO2MIX_BODY),
+    regional: () => json(200, REGIONAL_BODY),
+    ecogaz: () => json(200, ECOGAZ_BODY),
     token: (request) => {
       const expected = `Basic ${Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64')}`;
       return request.headers.authorization === expected
@@ -84,6 +96,12 @@ export function createFakeRte() {
       if (request.url.startsWith(ECO2MIX_URL)) {
         return rte.eco2mix(request);
       }
+      if (request.url.startsWith(REGIONAL_URL)) {
+        return rte.regional(request);
+      }
+      if (request.url.startsWith(ECOGAZ_URL)) {
+        return rte.ecogaz(request);
+      }
       if (request.url === TOKEN_URL) {
         return rte.token(request);
       }
@@ -93,11 +111,12 @@ export function createFakeRte() {
       throw new TypeError('fetch failed', { cause: { code: 'ENOTFOUND' } });
     },
     count: (kind) =>
-      rte.calls.filter((c) =>
-        kind === 'eco2mix'
-          ? c.url.startsWith(ECO2MIX_URL)
-          : c.url === (kind === 'token' ? TOKEN_URL : SIGNALS_URL),
-      ).length,
+      rte.calls.filter((c) => {
+        const prefix = { eco2mix: ECO2MIX_URL, regional: REGIONAL_URL, ecogaz: ECOGAZ_URL }[kind];
+        return prefix
+          ? c.url.startsWith(prefix)
+          : c.url === (kind === 'token' ? TOKEN_URL : SIGNALS_URL);
+      }).length,
   };
   return rte;
 }
@@ -137,6 +156,8 @@ export async function createWorld({
 
 export const gridId = (gladys) => deviceIds(gladys, GRID);
 export const ecowattId = (gladys) => deviceIds(gladys, ECOWATT);
+export const ecogazId = (gladys) => deviceIds(gladys, ECOGAZ);
+export const regionId = (gladys, code) => regionIds(gladys, code);
 
 /** Add every discovered device in Gladys, as the user would. */
 export async function createAll(world) {

@@ -15,20 +15,31 @@
 //
 // The "EcoWatt alert announced" trigger fires once per announcement: a day
 // turning orange, or red, for the first time (remembered under /data).
+//
+// Since 1.1: éCO2mix by region (one device per region chosen, read every 15
+// minutes once one is added) and EcoGaz (read every hour, for its device and
+// its "EcoGaz alert announced" trigger: today or tomorrow orange or red, once
+// per day and level, remembered under /data like EcoWatt's).
 // -----------------------------------------------------------------------------
 
 import { createLogger } from '@gladysassistant/integration-sdk';
 import { hasEcowatt, normalizeConfig } from './config.js';
 import {
+  ECOGAZ,
   ECOWATT,
   GRID,
   MIX_MAX_AGE_MS,
   buildDevices,
   deviceIds,
+  ecogazStates,
   ecowattStates,
   gridStates,
+  regionIds,
+  regionStates,
 } from './devices.js';
 import { fetchLatestMix } from './eco2mix.js';
+import { GAS_COLORS, GAS_LEVELS, fetchEcogaz, gasLevelsAt } from './ecogaz.js';
+import { fetchRegionalMixes } from './regional.js';
 import {
   CredentialsError,
   LEVELS,
@@ -47,6 +58,8 @@ const logger = createLogger({ name: 'rte' });
 export const TICK_MS = 60 * 1000;
 export const MIX_PERIOD_MS = 15 * 60 * 1000;
 export const ECOWATT_PERIOD_MS = 30 * 60 * 1000;
+/** EcoGaz is published once a day (around 11:00): every hour is plenty. */
+export const ECOGAZ_PERIOD_MS = 60 * 60 * 1000;
 export const HEARTBEAT_MS = 6 * 60 * 60 * 1000;
 /** A widget shown in the last hour keeps éCO2mix read without the device. */
 const WIDGET_INTEREST_MS = 60 * 60 * 1000;
@@ -54,6 +67,9 @@ const WIDGET_INTEREST_MS = 60 * 60 * 1000;
 export const TRIGGER_KEY = 'ecowatt_alert';
 export const ACTION_KEY = 'test_connection';
 export const ALERT_COLORS = { [LEVELS.ORANGE]: 'orange', [LEVELS.RED]: 'red' };
+export const GAS_TRIGGER_KEY = 'ecogaz_alert';
+/** The days the EcoGaz trigger watches: today and tomorrow. */
+export const GAS_ALERT_DAYS = 2;
 
 /**
  * @param {object} gladys GladysIntegration, or the SDK's fake Gladys
@@ -73,10 +89,18 @@ export function registerHandlers(
   } = {},
 ) {
   let config = normalizeConfig(gladys.config ?? {});
-  /** What /data keeps: `{ ecowatt: { lastCallAt, notBefore, signals }, announced: { date: level } }`. */
-  let persisted = { ecowatt: {}, announced: {} };
+  /**
+   * What /data keeps: `{ ecowatt: { lastCallAt, notBefore, signals },
+   * announced: { date: level }, gasAnnounced: { date: level } }`.
+   */
+  let persisted = { ecowatt: {}, announced: {}, gasAnnounced: {} };
   let mix = null;
   let mixAttemptAt = -Infinity;
+  /** INSEE code → latest complete regional mix. */
+  let regionalMixes = {};
+  let regionalAttemptAt = -Infinity;
+  let gas = null;
+  let gasAttemptAt = -Infinity;
   let ecowattAttemptAt = -Infinity;
   let widgetShownAt = -Infinity;
   let lastTickAt = -Infinity;
@@ -88,6 +112,8 @@ export function registerHandlers(
   let ticking = null;
 
   const eco2mixIssues = createIssueLog(logger.child('eco2mix'));
+  const regionalIssues = createIssueLog(logger.child('eco2mix-regional'));
+  const ecogazIssues = createIssueLog(logger.child('ecogaz'));
   const ecowattIssues = createIssueLog(logger.child('ecowatt'));
   const gladysIssues = createIssueLog(logger);
 
@@ -105,13 +131,14 @@ export function registerHandlers(
     persisted = {
       ecowatt: data.ecowatt && typeof data.ecowatt === 'object' ? data.ecowatt : {},
       announced: data.announced && typeof data.announced === 'object' ? data.announced : {},
+      gasAnnounced:
+        data.gasAnnounced && typeof data.gasAnnounced === 'object' ? data.gasAnnounced : {},
     };
   });
 
-  const isCreated = (type) => {
-    const id = deviceIds(gladys, type).device;
-    return (gladys.devices ?? []).some((device) => device.external_id === id);
-  };
+  const isCreatedId = (id) => (gladys.devices ?? []).some((device) => device.external_id === id);
+  const isCreated = (type) => isCreatedId(deviceIds(gladys, type).device);
+  const isRegionCreated = (code) => isCreatedId(regionIds(gladys, code).device);
   const signals = () => persisted.ecowatt.signals ?? null;
   const freshMix = () => (mix && now() - Date.parse(mix.at) <= MIX_MAX_AGE_MS ? mix : null);
 
@@ -165,6 +192,86 @@ export function registerHandlers(
     }
   }
 
+  async function refreshRegions() {
+    regionalAttemptAt = now();
+    try {
+      const read = await fetchRegionalMixes(fetchImpl, config.regions);
+      // A region missing from this answer keeps its last mix (it ages out).
+      regionalMixes = { ...regionalMixes, ...read };
+      regionalIssues.ok('read', 'éCO2mix regional answers again');
+      logger.debug(
+        `éCO2mix regional: ${Object.values(read)
+          .map((m) => `${m.region}@${m.at}`)
+          .join(' ')}`,
+      );
+      return read;
+    } catch (err) {
+      regionalIssues.fail('read', `éCO2mix regional cannot be read: ${err.message}`);
+      return null;
+    }
+  }
+
+  async function refreshEcogaz() {
+    gasAttemptAt = now();
+    try {
+      gas = await fetchEcogaz(fetchImpl);
+      ecogazIssues.ok('read', 'EcoGaz answers again');
+      logger.debug(`EcoGaz read: ${gas.days.map((d) => `${d.date}=${d.level}`).join(' ')}`);
+      await announceGasAlerts(gas);
+      return true;
+    } catch (err) {
+      ecogazIssues.fail('read', `EcoGaz cannot be read: ${err.message}`);
+      return false;
+    }
+  }
+
+  /**
+   * Fire the EcoGaz trigger for today or tomorrow newly orange or red, once
+   * per level. Serialized: a reading from the action or a device added may
+   * run beside a tick, and must not announce the same day twice.
+   */
+  let gasAnnouncing = Promise.resolve();
+  function announceGasAlerts(read) {
+    gasAnnouncing = gasAnnouncing.catch(() => {}).then(() => announceGasAlertsNow(read));
+    return gasAnnouncing;
+  }
+
+  async function announceGasAlertsNow(read) {
+    const today = parisTime(now()).date;
+    const announced = Object.fromEntries(
+      Object.entries(persisted.gasAnnounced).filter(([date]) => date >= today),
+    );
+    for (const day of read.days) {
+      const daysAhead = Math.round((Date.parse(day.date) - Date.parse(today)) / 86_400_000);
+      if (
+        daysAhead < 0 ||
+        daysAhead >= GAS_ALERT_DAYS ||
+        day.level < GAS_LEVELS.ORANGE ||
+        (announced[day.date] ?? -1) >= day.level
+      ) {
+        continue;
+      }
+      try {
+        await gladys.publishSceneEvent(GAS_TRIGGER_KEY, {
+          color: GAS_COLORS[day.level],
+          level: day.level,
+          date: day.date,
+          days_ahead: daysAhead,
+        });
+        announced[day.date] = day.level;
+        logger.info(`EcoGaz alert announced: ${GAS_COLORS[day.level]} on ${day.date}`);
+      } catch (err) {
+        // Not remembered: announced again after the next reading.
+        gladysIssues.fail('scene-event', `EcoGaz alert not sent to Gladys: ${err.message}`);
+      }
+    }
+    // Written only on change: EcoGaz is read every hour.
+    if (JSON.stringify(announced) !== JSON.stringify(persisted.gasAnnounced)) {
+      persisted.gasAnnounced = announced;
+      store.save(persisted);
+    }
+  }
+
   /** Fire the trigger for every day newly orange or red, once per level. */
   async function announceAlerts(read) {
     const today = parisTime(now()).date;
@@ -205,6 +312,10 @@ export function registerHandlers(
     const states = [
       ...(isCreated(GRID) ? gridStates(gladys, mix, now()) : []),
       ...(hasEcowatt(config) && isCreated(ECOWATT) ? ecowattStates(gladys, signals(), now()) : []),
+      ...(isCreated(ECOGAZ) ? ecogazStates(gladys, gas, now()) : []),
+      ...config.regions
+        .filter(isRegionCreated)
+        .flatMap((code) => regionStates(gladys, code, regionalMixes[code], now())),
     ];
     if (states.length === 0) {
       return;
@@ -274,6 +385,16 @@ export function registerHandlers(
       ) {
         await refreshEcowatt();
       }
+      const wantsRegions = config.regions.some(isRegionCreated);
+      if (
+        config.regions.length > 0 &&
+        (force || (wantsRegions && now() - regionalAttemptAt >= MIX_PERIOD_MS))
+      ) {
+        await refreshRegions();
+      }
+      if (force || now() - gasAttemptAt >= ECOGAZ_PERIOD_MS) {
+        await refreshEcogaz();
+      }
       await publishStates();
       await reportStatus();
     })().finally(() => {
@@ -313,7 +434,7 @@ export function registerHandlers(
       logger.error(`Publishing the devices failed: ${err.message}`);
     }
     if (!hasEcowatt(config)) {
-      logger.info('EcoWatt: no key in the configuration, éCO2mix only');
+      logger.info('EcoWatt: no key in the configuration, no EcoWatt device');
     }
     schedule();
     await tick({ force: true });
@@ -340,6 +461,15 @@ export function registerHandlers(
     if (device.external_id === deviceIds(gladys, GRID).device && !freshMix()) {
       await refreshMix();
     }
+    const region = config.regions.find(
+      (code) => regionIds(gladys, code).device === device.external_id,
+    );
+    if (region && !regionalMixes[region]) {
+      await refreshRegions();
+    }
+    if (device.external_id === deviceIds(gladys, ECOGAZ).device && !gas) {
+      await refreshEcogaz();
+    }
     await publishStates();
     gladys.requestWidgetRefresh(WIDGET_KEY);
   };
@@ -362,6 +492,20 @@ export function registerHandlers(
       parts.push(TEXT.ecowattNotConfigured);
     } else {
       parts.push(await testEcowatt());
+    }
+    if (await refreshEcogaz()) {
+      const [today] = gasLevelsAt(gas, now(), 1);
+      parts.push(today === null ? TEXT.ecogazNoToday : MESSAGES.ecogazToday(today));
+    } else {
+      parts.push(TEXT.ecogazDown);
+    }
+    if (config.regions.length > 0) {
+      const read = await refreshRegions();
+      parts.push(
+        read
+          ? MESSAGES.regionsOk(Object.keys(read).length, config.regions.length)
+          : TEXT.regionalDown,
+      );
     }
     await publishStates();
     await reportStatus();
@@ -424,6 +568,12 @@ export function registerHandlers(
     },
     get signals() {
       return signals();
+    },
+    get regionalMixes() {
+      return regionalMixes;
+    },
+    get gas() {
+      return gas;
     },
     /** Stop the timer and wait for the last write under /data. */
     async stop() {

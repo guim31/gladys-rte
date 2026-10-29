@@ -1,4 +1,4 @@
-# RTE éCO2mix & EcoWatt
+# RTE éCO2mix, EcoWatt & EcoGaz
 
 Verfolge in Gladys das französische Stromnetz, so wie RTE es als offene Daten veröffentlicht: wie
 viel CO₂ jede gerade erzeugte Kilowattstunde ausstößt, woher der Strom kommt (Kernenergie, Wind,
@@ -29,6 +29,16 @@ Die Integration liest zwei Quellen von RTE:
 
 Die Integration fügt zwei Geräte, ein Dashboard-Widget und einen Szenen-Auslöser „EcoWatt-Warnung angekündigt“
 hinzu.
+
+Seit Version 1.1 zwei weitere offene Quellen, ohne Schlüssel:
+
+- **éCO2mix pro Region** (RTE): für jede gewählte Region der Verbrauch, die Erzeugung nach Quelle,
+  der Austausch mit den Nachbarregionen und der erneuerbare Anteil, jede Viertelstunde.
+- **EcoGaz** (GRTgaz und Teréga): das Signal des französischen Gasnetzes für heute und die nächsten
+  Tage. Grün: normal. Gelb: hoher Verbrauch. Orange: angespanntes Netz. Rot: sehr angespanntes Netz,
+  Abschaltungen großer Verbraucher können folgen.
+
+Dazu kommen ein Gerät pro Region, ein **EcoGaz**-Gerät und ein Szenen-Auslöser „EcoGaz-Warnung angekündigt“. Beide wurden mit echten Antworten des ODRÉ-Portals getestet.
 
 ### EcoWatt gibt es schon in Gladys
 
@@ -74,6 +84,10 @@ Ohne Schlüssel funktioniert die Integration nur mit éCO2mix.
 4. Speichere und öffne den Tab **Erkennung**: Füge **Französisches Stromnetz** und, mit Schlüssel,
    **EcoWatt** hinzu.
 
+**Regionen** (optional): Hake die gewünschten Regionen an, je ein Gerät (benannt „Strom“ und die
+Region). Die zwölf Regionen des französischen Festlands werden angeboten; Korsika veröffentlicht RTE
+nicht. Das **EcoGaz**-Gerät wird allen angeboten. Wenn du eine Region abwählst, wird ihr Gerät nicht mehr aktualisiert; es bleibt in Gladys, bis du es löschst.
+
 ### Schaltfläche „Verbindung zu RTE testen“
 
 Liest éCO2mix sofort und zeigt die CO₂-Intensität der zuletzt veröffentlichten Viertelstunde. Mit
@@ -114,6 +128,29 @@ Gladys zeigt sie als Risikostufe: 0 „Kein Risiko“, 1 „Niedrig“, 2 „Mit
 erscheint also als gelbes Badge „Niedrig“: Das ist die Gladys-Farbe für ein niedriges Risiko, keine
 Warnung. Die aktuelle Stunde wechselt zu jeder vollen Stunde.
 
+### Strom (pro Region)
+
+Ein Gerät pro gewählter Region, jede Viertelstunde aktualisiert:
+
+| Funktion                        | Was sie misst                                                               |
+| ------------------------------- | --------------------------------------------------------------------------- |
+| Regionaler Verbrauch            | Der Verbrauch der Region, in kW                                             |
+| Regionale Erzeugung             | Was die Kraftwerke der Region erzeugen, in kW                               |
+| Austausch (Import + / Export −) | Mit den Nachbarregionen und -ländern, in kW                                 |
+| Deckungsgrad                    | Erzeugung im Verhältnis zum Verbrauch, in %: über 100 exportiert die Region |
+| CO₂-armer, erneuerbarer Anteil  | In % der Erzeugung der Region                                               |
+| Anteil Kernenergie, Windkraft…  | Der Anteil jeder Quelle (fossile Wärmekraft inklusive), in ganzen %         |
+
+RTE veröffentlicht keine CO₂-Intensität pro Region: Der Strom einer Region kommt auch von ihren
+Nachbarn.
+
+### EcoGaz
+
+Vier Funktionen: **EcoGaz heute**, **morgen**, **in 2 Tagen** und **in 3 Tagen**. Die Werte folgen
+den Farben von GRTgaz, minus eins: 0 grün, 1 gelb, 2 orange, 3 rot. Gladys zeigt sie als
+Risikostufe, deren Abzeichen genau diese Farben hat: 0 „Kein Risiko“ grün, 1 „Niedrig“ gelb,
+2 „Mittel“ orange, 3 „Hoch“ rot.
+
 ## Widget
 
 Das Widget **Französisches Stromnetz** kommt aufs Dashboard. Es zeigt:
@@ -143,6 +180,11 @@ Um auf die CO₂-Intensität zu reagieren, braucht es keinen eigenen Auslöser: 
 Gladys-Auslöser „Ein Gerät ändert seinen Zustand“ vergleicht die Funktion **CO₂-Intensität** schon
 mit einem Schwellenwert.
 
+**EcoGaz-Warnung angekündigt**: Das Gasnetz wird **heute oder morgen** orange oder rot. Einmal pro
+Tag und Farbe, auch nach einem Neustart. Filter: das **Signal** (orange, rot) und der **Betroffene
+Tag** (heute, morgen). Weitergegebene Informationen: das Signal (`orange` oder `red`), die Stufe
+(2 oder 3), das Datum und in wie vielen Tagen (0 oder 1).
+
 ## Szenen-Beispiele
 
 - **Wenig CO₂ → Geschirrspüler oder Laden starten.** Auslöser: „Ein Gerät ändert seinen Zustand“,
@@ -155,6 +197,8 @@ mit einem Schwellenwert.
 - **Orange oder rote Stunde → Laden des Autos verschieben.** Auslöser: „Ein Gerät ändert seinen
   Zustand“, **EcoWatt aktuelle Stunde** größer oder gleich 2. Aktion: die Ladesteckdose ausschalten.
   Eine zweite Szene schaltet sie wieder ein, wenn der Wert unter 2 fällt.
+- **Gasnetz orange → Heizung herunterdrehen.** Auslöser: **EcoGaz-Warnung angekündigt**, betroffener
+  Tag heute. Aktion: das Thermostat der Gasheizung um ein Grad senken und eine Nachricht senden.
 
 ## Lesetakt und Kontingente
 
@@ -169,6 +213,11 @@ mit einem Schwellenwert.
 
 Die Nutzung der Daten folgt den Bedingungen von RTE: die offene Lizenz von ODRÉ für éCO2mix, die
 Nutzungsbedingungen des Portals data.rte-france.com für EcoWatt.
+
+**éCO2mix pro Region** wird jede Viertelstunde gelesen, sobald ein Regionsgerät hinzugefügt ist: ein
+einziger Aufruf für alle Regionen. **EcoGaz** wird stündlich gelesen (GRTgaz veröffentlicht einmal
+am Tag, gegen 11 Uhr), für sein Gerät und seinen Auslöser. Beides sind offene Daten unter der
+Etalab-Lizenz 2.0.
 
 ## Fehlerbehebung
 
@@ -190,3 +239,7 @@ Nutzungsbedingungen des Portals data.rte-france.com für EcoWatt.
 - Heizöl (unter 1 % der Erzeugung) hat keine eigene Funktion; es erscheint im Widget ab 0,5 %.
 - Die an Szenen weitergegebene Nachricht von RTE ist auf Französisch, so wie RTE sie veröffentlicht.
 - EcoWatt liefert keine CO₂-Prognose: Diese Integration enthält keine Vorhersage der CO₂-Intensität.
+- Keine CO₂-Intensität pro Region und kein Korsika: RTE veröffentlicht sie nicht.
+- Die regionalen Werte kommen etwa eine Stunde verspätet, wie die landesweiten.
+- EcoGaz ist ein landesweites Signal (französisches Festland), einmal am Tag aktualisiert.
+- EcoGaz folgt den Kalendertagen nach Pariser Zeit; der Gastag der Netzbetreiber läuft von 6 bis 6 Uhr.

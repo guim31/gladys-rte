@@ -21,12 +21,15 @@ const table = JSON.parse(
 );
 
 const key = { ecowatt_client_id: CLIENT_ID, ecowatt_client_secret: CLIENT_SECRET };
+// Every region of the dataset: twelve devices more.
+const regions = ['11', '24', '27', '28', '32', '44', '52', '53', '75', '76', '84', '93'];
 const scenarios = [
-  { label: 'éCO2mix only', config: { language: 'fr' }, count: 1 },
-  { label: 'with EcoWatt, French names', config: { ...key, language: 'fr' }, count: 2 },
-  { label: 'English names', config: { ...key, language: 'en' }, count: 2 },
-  { label: 'German names', config: { ...key, language: 'de' }, count: 2 },
-  { label: 'Spanish names', config: { ...key, language: 'es' }, count: 2 },
+  { label: 'éCO2mix and EcoGaz only', config: { language: 'fr' }, count: 2 },
+  { label: 'with EcoWatt, French names', config: { ...key, language: 'fr' }, count: 3 },
+  { label: 'every region, French names', config: { ...key, language: 'fr', regions }, count: 15 },
+  { label: 'English names', config: { ...key, language: 'en', regions }, count: 15 },
+  { label: 'German names', config: { ...key, language: 'de', regions }, count: 15 },
+  { label: 'Spanish names', config: { ...key, language: 'es', regions }, count: 15 },
 ];
 
 for (const scenario of scenarios) {

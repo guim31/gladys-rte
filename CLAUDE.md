@@ -34,13 +34,15 @@ pushing.
 index.js                          SDK wiring only: src/app.js registers the handlers before connect()
 src/app.js                        every SDK handler, the minute timer, reads, states, trigger, status
 src/eco2mix.js                    éCO2mix client (ODRÉ v2.1) + parsing of a row into shares
+src/regional.js                   éCO2mix regional client (ODRÉ): latest complete row per region
+src/ecogaz.js                     EcoGaz client (ODRÉ): GRTgaz colors 1-4 → levels 0-3, Paris dates
 src/ecowatt.js                    EcoWatt v5 client: OAuth2 token, 15-min quota, signals, French time
 src/http.js                       fetch with timeout, errors that never carry the request
-src/devices.js                    the two devices: features, values (names in src/i18n.js)
+src/devices.js                    grid, EcoWatt, EcoGaz and region devices: features, values (names in src/i18n.js)
 src/widgets.js                    dashboard widget `grid` (manifest `widgets`)
 src/i18n.js                       every text and feature name, in en, fr, de, es
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/store.js                      /data/rte-state.json (EcoWatt quota, last signals, alerts announced)
+src/store.js                      /data/rte-state.json (EcoWatt quota, last signals, EcoWatt and EcoGaz alerts announced)
 src/issues.js                     a lasting failure logged once, its recovery once
 scripts/probe.mjs                 read-only check of the real APIs (needs the network)
 gladys-assistant-integration.json manifest: name, config_schema, actions, image...
@@ -212,6 +214,8 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
   (sans clé, `opendata.reseaux-energies.fr` y renvoie). EcoWatt v5 : jeton
   `https://digital.iservices.rte-france.com/token/oauth/` (Basic `id:secret`, jeton de 2 h), puis
   `/open_api/ecowatt/v5/signals` (et `/sandbox/signals`, sans quota, pour essayer une clé).
+- **Réseau** : le 29/10/2026, la session (Beelink) atteignait `odre.opendatasoft.com` ; ce n'était pas le cas
+  le 15/10.
 - **Session sans réseau vers RTE** (proxy : `odre.opendatasoft.com`, `opendata.reseaux-energies.fr`,
   `data.rte-france.com`, `digital.iservices.rte-france.com` refusés le 15/10/2026). Les fixtures de
   `test/fixtures/` suivent les formats documentés, pas une vraie réponse : les rafraîchir avec
@@ -250,6 +254,18 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
   authentification**, cache 30 min : ni Gladys Plus ni clé. Ni appareil ni déclencheur. La condition
   ne connaît que 1/2/3 : une heure décarbonée (0) ne vaut jamais « Réseau ok ». La doc le dit
   (section « EcoWatt est déjà dans Gladys »).
+- **éCO2mix régional** (1.1, `eco2mix-regional-tr`, vérifié contre l'API réelle le 29/10/2026) : 12 régions
+  (pas la Corse), aucun taux de CO₂, `pompage`/`stockage_batterie`/`destockage_batterie` en **texte**, lignes
+  du jour d'avance toutes à `null` (consommation comprise : on filtre `consommation is not null`), une heure de
+  retard. Requête unique `code_insee_region in ("11", …)`, limite 100 lignes (8 par région). Appareil par
+  région : `externalIds('region', <code INSEE>)`. Taux de couverture en `counter-sensor/integer` + `%`,
+  bornes 0-1000 (le Centre-Val de Loire dépasse 400 %) ; échanges en kW signés, bornes symétriques.
+- **EcoGaz** (1.1, `signal-ecogaz`, licence Etalab 2.0) : `indice_de_couleur` en **texte**, 1 vert, 2 jaune,
+  3 orange, 4 rouge (seul le vert existe dans l'historique au 29/10/2026), J à J+4, mis à jour vers 11 h.
+  Publié **moins un** (0-3) en `risk/integer` : le badge du front a alors exactement les couleurs d'EcoGaz.
+  Lu toutes les heures même sans appareil (le déclencheur `ecogaz_alert` en dépend). Déclencheur : aujourd'hui
+  et demain seulement, une fois par (date, niveau), mémorisé dans `/data` (`gasAnnounced`), variable `level`
+  2/3 comme EcoWatt.
 - **Garde-fou du tutoiement** : la regex attrape aussi « Sie » = « ils/elle » en début de phrase.
   Reformuler (« Die Integration… ») plutôt que l'assouplir.
 

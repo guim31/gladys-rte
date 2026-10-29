@@ -43,7 +43,7 @@ test('publishes the grid and the EcoWatt devices, then reads both APIs once', as
   const world = await createWorld();
   t.after(() => world.app.stop());
   const names = world.fake.discoveredDevices.map((d) => d.name);
-  assert.deepEqual(names, ['Réseau électrique français', 'EcoWatt']);
+  assert.deepEqual(names, ['Réseau électrique français', 'EcoWatt', 'EcoGaz']);
   assert.equal(world.rte.count('eco2mix'), 1);
   assert.equal(world.rte.count('signals'), 1);
   assert.equal(world.fake.connectionStatus.connected, true);
@@ -54,7 +54,7 @@ test('without the EcoWatt key: the grid device only, and RTE EcoWatt never calle
   t.after(() => world.app.stop());
   assert.deepEqual(
     world.fake.discoveredDevices.map((d) => d.name),
-    ['French power grid'],
+    ['French power grid', 'EcoGaz'],
   );
   assert.equal(world.rte.count('token'), 0);
   assert.equal(world.rte.count('signals'), 0);

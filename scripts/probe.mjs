@@ -3,7 +3,8 @@
 // Probe of the real RTE APIs with the integration's own clients, read-only,
 // from a machine that has the network (the development session had none).
 //
-//   node scripts/probe.mjs                 éCO2mix, then EcoWatt with a fake
+//   node scripts/probe.mjs                 éCO2mix (national and the 12 regions),
+//                                          EcoGaz, then EcoWatt with a fake
 //                                          application (must be refused)
 //   RTE_CLIENT_ID=… RTE_CLIENT_SECRET=… node scripts/probe.mjs
 //                                          also reads the real EcoWatt signals
@@ -26,6 +27,8 @@ import {
   createEcowattClient,
   levelsAt,
 } from '../src/ecowatt.js';
+import { REGIONAL_URL, REGIONS, latestRegionalMixes, regionalQuery } from '../src/regional.js';
+import { ECOGAZ_URL, ecogazQuery, gasLevelsAt, parseEcogaz } from '../src/ecogaz.js';
 
 const saveIndex = process.argv.indexOf('--save');
 const saveDir = saveIndex > 0 ? process.argv[saveIndex + 1] : null;
@@ -136,7 +139,54 @@ async function probeEcowatt() {
   }
 }
 
+/** GET a JSON answer of ODRÉ, kept for --save. */
+async function odre(url, name) {
+  const response = await fetch(url, {
+    headers: { accept: 'application/json' },
+    signal: AbortSignal.timeout(20_000),
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${(await response.text()).slice(0, 300)}`);
+  }
+  const body = await response.json();
+  bodies[name] = JSON.stringify(body, null, 2);
+  return body;
+}
+
+async function probeRegional() {
+  const codes = Object.keys(REGIONS);
+  console.log(`éCO2mix regional — ${REGIONAL_URL}`);
+  const body = await odre(`${REGIONAL_URL}?${regionalQuery(codes)}`, 'eco2mix-regional-tr.json');
+  const mixes = latestRegionalMixes(body, codes);
+  for (const code of codes) {
+    const mix = mixes[code];
+    if (!mix) {
+      fail(`${code} ${REGIONS[code]}: no complete quarter-hour`);
+      continue;
+    }
+    const ageMin = Math.round((Date.now() - Date.parse(mix.at)) / 60000);
+    ok(
+      `${code} ${REGIONS[code]}: ${mix.at} (${ageMin} min ago), consumption ${mix.consumptionMw} MW, ` +
+        `production ${mix.productionMw} MW, exchanges ${mix.exchangesMw} MW, ` +
+        `coverage ${mix.coveragePercent} %, renewable ${mix.renewablePercent} %`,
+    );
+  }
+}
+
+async function probeEcogaz() {
+  console.log(`EcoGaz — ${ECOGAZ_URL}`);
+  const signals = parseEcogaz(await odre(`${ECOGAZ_URL}?${ecogazQuery()}`, 'signal-ecogaz.json'));
+  ok(`days ${signals.days.map((d) => `${d.date}=${d.level}`).join(' ')}`);
+  const levels = gasLevelsAt(signals, Date.now());
+  ok(`today and next days: ${JSON.stringify(levels)}`);
+  if (levels[0] === null) {
+    fail('no EcoGaz signal for today');
+  }
+}
+
 await probeEco2mix().catch((err) => fail(`éCO2mix: ${err.message}`));
+await probeRegional().catch((err) => fail(`éCO2mix regional: ${err.message}`));
+await probeEcogaz().catch((err) => fail(`EcoGaz: ${err.message}`));
 await probeEcowatt().catch((err) => fail(`EcoWatt: ${err.message}`));
 
 if (saveDir) {

@@ -152,6 +152,8 @@ test('every text of the code has the four languages', () => {
     ecowattFailed: ['EcoWatt answered HTTP 503'],
     ecowattToday: [2],
     ecowattQuota: [14],
+    ecogazToday: [3],
+    regionsOk: [2, 3],
     updatedAt: ['14:15'],
   };
   assert.deepEqual(sorted(Object.keys(MESSAGES)), sorted(Object.keys(samples)));

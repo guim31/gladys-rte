@@ -18,7 +18,7 @@ gladys.handleShutdown((signal) => {
   return app.stop(); // stops the timer, waits for the last write under /data
 });
 
-logger.info('Starting the RTE éCO2mix & EcoWatt integration...');
+logger.info('Starting the RTE éCO2mix, EcoWatt & EcoGaz integration...');
 gladys.connect().catch((err) => {
   logger.error('Initial connection failed', err);
   process.exit(1);
