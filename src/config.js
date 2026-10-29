@@ -7,6 +7,8 @@
 // `undefined` or with a value typed by hand with stray spaces.
 // -----------------------------------------------------------------------------
 
+import { REGIONS } from './regional.js';
+
 /** The languages of the Gladys interface, every text exists in all four. */
 export const LANGUAGES = ['en', 'fr', 'de', 'es'];
 
@@ -21,6 +23,9 @@ export const DEFAULT_CONFIG = {
   // without it, only the éCO2mix device exists).
   ecowatt_client_id: '',
   ecowatt_client_secret: '',
+  // INSEE codes of the regions followed (éCO2mix regional): one device each.
+  // No default in the manifest (a multi_select stores an array).
+  regions: [],
 };
 
 /**
@@ -34,7 +39,20 @@ export function normalizeConfig(raw = {}) {
     ecowatt_client_id: String(raw.ecowatt_client_id ?? '').trim(),
     // Pasted from the RTE portal: spaces and line breaks around it are noise.
     ecowatt_client_secret: String(raw.ecowatt_client_secret ?? '').trim(),
+    regions: normalizeRegions(raw.regions),
   };
+}
+
+/**
+ * The regions chosen: an array from the multi_select (a comma-separated
+ * string is accepted too), unknown codes dropped, without duplicates.
+ * @param {unknown} raw
+ * @returns {string[]}
+ */
+function normalizeRegions(raw) {
+  const list = Array.isArray(raw) ? raw : typeof raw === 'string' ? raw.split(',') : [];
+  const codes = list.map((code) => String(code).trim()).filter((code) => REGIONS[code]);
+  return [...new Set(codes)].sort();
 }
 
 /**

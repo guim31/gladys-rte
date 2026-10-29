@@ -84,7 +84,7 @@ export function latestMix(body) {
  * @param {unknown} value
  * @returns {number | null}
  */
-function toNumber(value) {
+export function toNumber(value) {
   if (typeof value === 'number') {
     return Number.isFinite(value) ? value : null;
   }

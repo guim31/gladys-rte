@@ -7,10 +7,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { ACTION_KEY, ALERT_COLORS, TRIGGER_KEY } from '../src/app.js';
+import { ACTION_KEY, ALERT_COLORS, GAS_TRIGGER_KEY, TRIGGER_KEY } from '../src/app.js';
 import { DEFAULT_CONFIG, LANGUAGES } from '../src/config.js';
 import { WIDGET_KEY } from '../src/widgets.js';
-import { createWorld } from './helpers/world.js';
+import {
+  ECOGAZ_BODY,
+  GAS_START,
+  createClock,
+  createFakeRte,
+  createWorld,
+} from './helpers/world.js';
 
 const manifest = JSON.parse(
   await readFile(new URL('../gladys-assistant-integration.json', import.meta.url), 'utf8'),
@@ -38,7 +44,7 @@ function isAtLeast(version, required) {
 }
 
 test('identity: name, image, cover, cloud transport, energy category', () => {
-  assert.equal(manifest.name, 'RTE éCO2mix & EcoWatt');
+  assert.equal(manifest.name, 'RTE éCO2mix, EcoWatt & EcoGaz');
   assert.ok(manifest.name.length >= 3 && manifest.name.length <= 30);
   assert.equal(manifest.type, 'device');
   assert.match(manifest.docker_image, /^ghcr\.io\/guim31\/gladys-rte:/);
@@ -68,8 +74,8 @@ test('declaring catalog categories requires Gladys >= 4.86.0', () => {
   assert.ok(isAtLeast(minGladysVersion(), CATEGORIES_MIN_GLADYS_VERSION));
 });
 
-test('a scene trigger and a widget, no scene action: Gladys >= 5.1.0', () => {
-  assert.deepEqual(keysOf(manifest.scene_triggers), [TRIGGER_KEY]);
+test('two scene triggers and a widget, no scene action: Gladys >= 5.1.0', () => {
+  assert.deepEqual(keysOf(manifest.scene_triggers), [TRIGGER_KEY, GAS_TRIGGER_KEY]);
   assert.deepEqual(keysOf(manifest.widgets), [WIDGET_KEY]);
   assert.equal(manifest.scene_actions, undefined);
   assert.ok(isAtLeast(minGladysVersion(), CAPABILITY_MIN_GLADYS_VERSION));
@@ -162,4 +168,30 @@ test('the trigger filters and variables are the keys the code sends', async (t) 
   for (const variable of trigger.variables) {
     assert.equal(typeof event.data[variable.key], variable.type, variable.key);
   }
+});
+
+test('the EcoGaz trigger filters and variables are the keys the code sends', async (t) => {
+  const trigger = manifest.scene_triggers.find((tr) => tr.key === GAS_TRIGGER_KEY);
+  assert.deepEqual(
+    trigger.fields.find((f) => f.key === 'color').options.map((o) => o.value),
+    ['orange', 'red'],
+  );
+  assert.deepEqual(
+    trigger.fields.find((f) => f.key === 'days_ahead').options.map((o) => o.value),
+    ['0', '1'],
+  );
+  const rte = createFakeRte();
+  const body = structuredClone(ECOGAZ_BODY);
+  body.results.find((row) => row.gas_day === '2026-10-29').indice_de_couleur = '4';
+  rte.ecogaz = () => new Response(JSON.stringify(body), { status: 200 });
+  const world = await createWorld({ rte, clock: createClock(GAS_START) });
+  t.after(() => world.app.stop());
+  const event = world.fake.sceneEvents.find((e) => e.key === GAS_TRIGGER_KEY);
+  assert.deepEqual(Object.keys(event.data).sort(), keysOf(trigger.variables).sort());
+  for (const variable of trigger.variables) {
+    assert.equal(typeof event.data[variable.key], variable.type, variable.key);
+  }
+  // The filters compare strings: the core converts the number of the event.
+  assert.ok(['0', '1'].includes(String(event.data.days_ahead)));
+  assert.ok(['orange', 'red'].includes(event.data.color));
 });

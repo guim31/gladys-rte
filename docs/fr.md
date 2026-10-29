@@ -1,4 +1,4 @@
-# RTE éCO2mix & EcoWatt
+# RTE éCO2mix, EcoWatt & EcoGaz
 
 Suivez dans Gladys l'état du réseau électrique français, tel que RTE le publie en données ouvertes :
 combien de CO₂ émet chaque kilowattheure produit en ce moment, d'où vient l'électricité (nucléaire,
@@ -30,6 +30,17 @@ L'intégration lit deux sources de RTE :
 
 Elle ajoute deux appareils, un widget pour le tableau de bord et un déclencheur de scène « Alerte
 EcoWatt annoncée ».
+
+Depuis la version 1.1, deux sources ouvertes de plus, sans clé :
+
+- **éCO2mix par région** (RTE) : pour chaque région choisie, la consommation, la production par
+  filière, les échanges avec les régions voisines et la part renouvelable, chaque quart d'heure.
+- **EcoGaz** (GRTgaz et Teréga) : le signal du réseau de gaz français pour aujourd'hui et les jours
+  suivants. Vert : normal. Jaune : consommation élevée. Orange : réseau tendu. Rouge : réseau très
+  tendu, des délestages de gros consommateurs peuvent suivre.
+
+Elles ajoutent un appareil par région, un appareil **EcoGaz** et un déclencheur de scène « Alerte
+EcoGaz annoncée ». Les deux ont été testées sur de vraies réponses du portail ODRÉ.
 
 ### EcoWatt est déjà dans Gladys
 
@@ -76,6 +87,10 @@ Sans clé, l'intégration fonctionne avec éCO2mix seul.
 4. Enregistrez, puis ouvrez l'onglet **Découverte** : ajoutez **Réseau électrique français** et,
    avec une clé, **EcoWatt**.
 
+**Régions à suivre** (facultatif) : cochez les régions voulues, un appareil chacune (nommé
+« Électricité » suivi de la région). Les douze régions de France continentale sont proposées ; RTE
+ne publie pas la Corse. L'appareil **EcoGaz** est proposé à tous.
+
 ### Bouton « Tester la connexion à RTE »
 
 Lit éCO2mix tout de suite et affiche le taux de CO₂ du dernier quart d'heure publié. Avec une clé,
@@ -116,6 +131,28 @@ Gladys les affiche comme un niveau de risque : 0 « Pas de risque », 1 « Faibl
 3 « Élevé ». Un jour vert apparaît donc en jaune « Faible » sur la pastille : c'est la couleur de
 Gladys pour un risque faible, pas une alerte. L'heure en cours change à chaque heure pleine.
 
+### Électricité (par région)
+
+Un appareil par région choisie, mis à jour chaque quart d'heure :
+
+| Fonctionnalité                  | Ce qu'elle mesure                                                                |
+| ------------------------------- | -------------------------------------------------------------------------------- |
+| Consommation régionale          | La consommation de la région, en kW                                              |
+| Production régionale            | Ce que produisent les centrales de la région, en kW                              |
+| Échanges (import + / export −)  | Avec les régions et pays voisins, en kW                                          |
+| Taux de couverture              | Production rapportée à la consommation, en % : au-delà de 100, la région exporte |
+| Part bas carbone, renouvelable  | En % de la production de la région                                               |
+| Part du nucléaire, de l'éolien… | La part de chaque filière (thermique fossile compris), en % entier               |
+
+RTE ne publie pas de taux de CO₂ par région : l'électricité d'une région vient aussi de ses voisines.
+
+### EcoGaz
+
+Quatre fonctionnalités : **EcoGaz aujourd'hui**, **demain**, **dans 2 jours** et **dans 3 jours**.
+Les valeurs suivent les couleurs de GRTgaz, moins un : 0 vert, 1 jaune, 2 orange, 3 rouge. Gladys
+les affiche comme un niveau de risque dont la pastille a exactement ces couleurs : 0 « Pas de
+risque » vert, 1 « Faible » jaune, 2 « Moyen » orange, 3 « Élevé » rouge.
+
 ## Widget
 
 Le widget **Réseau électrique** se place sur le tableau de bord. Il montre :
@@ -143,6 +180,11 @@ Informations transmises aux actions de la scène : le signal (`orange` ou `red`)
 Pour réagir au taux de CO₂, pas besoin de déclencheur dédié : le déclencheur natif « Un appareil
 change d'état » de Gladys compare déjà la fonctionnalité **Taux de CO₂** à un seuil.
 
+**Alerte EcoGaz annoncée** : le réseau de gaz passe à l'orange ou au rouge **aujourd'hui ou
+demain**. Une fois par jour et par couleur, même après un redémarrage. Filtres : le **Signal**
+(orange, rouge) et le **Jour concerné** (aujourd'hui, demain). Informations transmises : le signal
+(`orange` ou `red`), le niveau (2 ou 3), la date et dans combien de jours (0 ou 1).
+
 ## Exemples de scènes
 
 - **CO₂ bas → lancer le lave-vaisselle ou la recharge.** Déclencheur : « Un appareil change
@@ -155,6 +197,9 @@ change d'état » de Gladys compare déjà la fonctionnalité **Taux de CO₂** 
 - **Heure orange ou rouge → décaler la recharge de la voiture.** Déclencheur : « Un appareil change
   d'état », **EcoWatt heure en cours** supérieur ou égal à 2. Action : couper la prise de recharge.
   Une seconde scène la rallume quand la valeur redescend sous 2.
+- **Réseau de gaz orange → baisser le chauffage.** Déclencheur : **Alerte EcoGaz annoncée**, jour
+  concerné aujourd'hui. Action : baisser d'un degré le thermostat de la chaudière gaz et envoyer un
+  message.
 
 ## Rythme de lecture et quotas
 
@@ -170,6 +215,11 @@ change d'état » de Gladys compare déjà la fonctionnalité **Taux de CO₂** 
 
 L'usage des données suit les conditions de RTE : la licence ouverte d'ODRÉ pour éCO2mix, les
 conditions générales du portail data.rte-france.com pour EcoWatt.
+
+**éCO2mix par région** est lu chaque quart d'heure dès qu'un appareil de région est ajouté : un
+seul appel pour toutes les régions. **EcoGaz** est lu toutes les heures (GRTgaz publie une fois par
+jour, vers 11 h), pour son appareil et son déclencheur. Les deux sont des données ouvertes sous
+Licence Ouverte Etalab 2.0.
 
 ## Dépannage
 
@@ -195,3 +245,6 @@ conditions générales du portail data.rte-france.com pour EcoWatt.
 - Le message de RTE transmis aux scènes est en français, tel que RTE le publie.
 - EcoWatt ne donne pas le CO₂ prévu : il n'y a pas de prévision du taux de CO₂ dans cette
   intégration.
+- Pas de taux de CO₂ par région, ni de Corse : RTE ne les publie pas.
+- Les chiffres régionaux arrivent avec environ une heure de retard, comme les nationaux.
+- EcoGaz est un signal national (France continentale), mis à jour une fois par jour.

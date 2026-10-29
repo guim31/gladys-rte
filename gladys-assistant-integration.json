@@ -1,12 +1,12 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "RTE éCO2mix & EcoWatt",
+  "name": "RTE éCO2mix, EcoWatt & EcoGaz",
   "description": {
-    "en": "French grid in real time: CO₂ per kWh, electricity mix and RTE EcoWatt alerts.",
-    "fr": "Réseau électrique français en direct : CO₂ par kWh, mix de production et alertes EcoWatt.",
-    "de": "Französisches Stromnetz live: CO₂ pro kWh, Strommix und EcoWatt-Warnungen von RTE.",
-    "es": "Red eléctrica francesa en directo: CO₂ por kWh, mix eléctrico y alertas EcoWatt de RTE."
+    "en": "French grid live, nationwide and by region: CO₂, electricity mix, EcoWatt and EcoGaz alerts.",
+    "fr": "Réseau français en direct, national et régional : CO₂, mix électrique, alertes EcoWatt et EcoGaz.",
+    "de": "Französisches Netz live, landesweit und regional: CO₂, Strommix, EcoWatt- und EcoGaz-Warnungen.",
+    "es": "Red francesa en directo, nacional y regional: CO₂, mix eléctrico, alertas EcoWatt y EcoGaz."
   },
   "version": "1.0.2",
   "docker_image": "ghcr.io/guim31/gladys-rte:1.0.2",
@@ -25,10 +25,10 @@
         "es": "Datos abiertos de RTE"
       },
       "description": {
-        "en": "The electricity mix and the CO₂ of the French grid (éCO2mix) need nothing: they are read every 15 minutes. The EcoWatt signal needs a free key from the RTE data portal. Not affiliated with RTE.",
-        "fr": "Le mix électrique et le CO₂ du réseau français (éCO2mix) ne demandent rien : ils sont lus toutes les 15 minutes. Le signal EcoWatt demande une clé gratuite du portail de données de RTE. Sans lien avec RTE.",
-        "de": "Der Strommix und das CO₂ des französischen Netzes (éCO2mix) brauchen nichts und werden alle 15 Minuten gelesen. Das EcoWatt-Signal braucht einen kostenlosen Schlüssel vom Datenportal von RTE. Nicht mit RTE verbunden.",
-        "es": "El mix eléctrico y el CO₂ de la red francesa (éCO2mix) no necesitan nada: se leen cada 15 minutos. La señal EcoWatt necesita una clave gratuita del portal de datos de RTE. Sin relación con RTE."
+        "en": "The electricity mix and the CO₂ of the French grid (éCO2mix), by region too, and the EcoGaz signal of the gas network need nothing. The EcoWatt signal needs a free key from the RTE data portal. Not affiliated with RTE, GRTgaz or Teréga.",
+        "fr": "Le mix électrique et le CO₂ du réseau français (éCO2mix), par région aussi, et le signal EcoGaz du réseau de gaz ne demandent rien. Le signal EcoWatt demande une clé gratuite du portail de RTE. Sans lien avec RTE, GRTgaz ni Teréga.",
+        "de": "Der Strommix und das CO₂ des französischen Netzes (éCO2mix), auch pro Region, und das EcoGaz-Signal des Gasnetzes brauchen nichts. Das EcoWatt-Signal braucht einen kostenlosen Schlüssel vom Datenportal von RTE. Nicht mit RTE, GRTgaz oder Teréga verbunden.",
+        "es": "El mix eléctrico y el CO₂ de la red francesa (éCO2mix), también por región, y la señal EcoGaz de la red de gas no necesitan nada. La señal EcoWatt necesita una clave gratuita del portal de datos de RTE. Sin relación con RTE, GRTgaz ni Teréga."
       },
       "links": [
         {
@@ -78,6 +78,133 @@
       "required": false
     },
     {
+      "key": "regions",
+      "type": "multi_select",
+      "label": {
+        "en": "Regions to follow (éCO2mix regional)",
+        "fr": "Régions à suivre (éCO2mix régional)",
+        "de": "Regionen (éCO2mix regional)",
+        "es": "Regiones a seguir (éCO2mix regional)"
+      },
+      "description": {
+        "en": "One device per region: consumption, production by source, exchanges, renewable share. Corsica is not published.",
+        "fr": "Un appareil par région : consommation, production par filière, échanges, part renouvelable. La Corse n’est pas publiée.",
+        "de": "Ein Gerät pro Region: Verbrauch, Erzeugung nach Quelle, Austausch, erneuerbarer Anteil. Korsika wird nicht veröffentlicht.",
+        "es": "Un dispositivo por región: consumo, producción por fuente, intercambios, proporción renovable. Córcega no se publica."
+      },
+      "required": false,
+      "options": [
+        {
+          "value": "11",
+          "label": {
+            "en": "Île-de-France",
+            "fr": "Île-de-France",
+            "de": "Île-de-France",
+            "es": "Île-de-France"
+          }
+        },
+        {
+          "value": "24",
+          "label": {
+            "en": "Centre-Val de Loire",
+            "fr": "Centre-Val de Loire",
+            "de": "Centre-Val de Loire",
+            "es": "Centre-Val de Loire"
+          }
+        },
+        {
+          "value": "27",
+          "label": {
+            "en": "Bourgogne-Franche-Comté",
+            "fr": "Bourgogne-Franche-Comté",
+            "de": "Bourgogne-Franche-Comté",
+            "es": "Bourgogne-Franche-Comté"
+          }
+        },
+        {
+          "value": "28",
+          "label": {
+            "en": "Normandie",
+            "fr": "Normandie",
+            "de": "Normandie",
+            "es": "Normandie"
+          }
+        },
+        {
+          "value": "32",
+          "label": {
+            "en": "Hauts-de-France",
+            "fr": "Hauts-de-France",
+            "de": "Hauts-de-France",
+            "es": "Hauts-de-France"
+          }
+        },
+        {
+          "value": "44",
+          "label": {
+            "en": "Grand Est",
+            "fr": "Grand Est",
+            "de": "Grand Est",
+            "es": "Grand Est"
+          }
+        },
+        {
+          "value": "52",
+          "label": {
+            "en": "Pays de la Loire",
+            "fr": "Pays de la Loire",
+            "de": "Pays de la Loire",
+            "es": "Pays de la Loire"
+          }
+        },
+        {
+          "value": "53",
+          "label": {
+            "en": "Bretagne",
+            "fr": "Bretagne",
+            "de": "Bretagne",
+            "es": "Bretagne"
+          }
+        },
+        {
+          "value": "75",
+          "label": {
+            "en": "Nouvelle-Aquitaine",
+            "fr": "Nouvelle-Aquitaine",
+            "de": "Nouvelle-Aquitaine",
+            "es": "Nouvelle-Aquitaine"
+          }
+        },
+        {
+          "value": "76",
+          "label": {
+            "en": "Occitanie",
+            "fr": "Occitanie",
+            "de": "Occitanie",
+            "es": "Occitanie"
+          }
+        },
+        {
+          "value": "84",
+          "label": {
+            "en": "Auvergne-Rhône-Alpes",
+            "fr": "Auvergne-Rhône-Alpes",
+            "de": "Auvergne-Rhône-Alpes",
+            "es": "Auvergne-Rhône-Alpes"
+          }
+        },
+        {
+          "value": "93",
+          "label": {
+            "en": "Provence-Alpes-Côte d'Azur",
+            "fr": "Provence-Alpes-Côte d'Azur",
+            "de": "Provence-Alpes-Côte d'Azur",
+            "es": "Provence-Alpes-Côte d'Azur"
+          }
+        }
+      ]
+    },
+    {
       "key": "language",
       "type": "select",
       "label": {
@@ -97,19 +224,39 @@
       "options": [
         {
           "value": "en",
-          "label": { "en": "English", "fr": "Anglais", "de": "Englisch", "es": "Inglés" }
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
         },
         {
           "value": "fr",
-          "label": { "en": "French", "fr": "Français", "de": "Französisch", "es": "Francés" }
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
         },
         {
           "value": "de",
-          "label": { "en": "German", "fr": "Allemand", "de": "Deutsch", "es": "Alemán" }
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
         },
         {
           "value": "es",
-          "label": { "en": "Spanish", "fr": "Espagnol", "de": "Spanisch", "es": "Español" }
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
         }
       ]
     }
@@ -124,10 +271,10 @@
         "es": "Probar la conexión con RTE"
       },
       "description": {
-        "en": "Reads éCO2mix now, and checks the EcoWatt key when one is given.",
-        "fr": "Lit éCO2mix tout de suite, et vérifie la clé EcoWatt si elle est renseignée.",
-        "de": "Liest éCO2mix sofort und prüft den EcoWatt-Schlüssel, falls angegeben.",
-        "es": "Lee éCO2mix ahora y comprueba la clave EcoWatt si se ha indicado."
+        "en": "Reads éCO2mix, EcoGaz and the regions now, and checks the EcoWatt key when one is given.",
+        "fr": "Lit éCO2mix, EcoGaz et les régions tout de suite, et vérifie la clé EcoWatt si elle est renseignée.",
+        "de": "Liest éCO2mix, EcoGaz und die Regionen sofort und prüft den EcoWatt-Schlüssel, falls angegeben.",
+        "es": "Lee éCO2mix, EcoGaz y las regiones ahora y comprueba la clave EcoWatt si se ha indicado."
       },
       "timeout_seconds": 60
     }
@@ -190,11 +337,21 @@
           "options": [
             {
               "value": "0",
-              "label": { "en": "Today", "fr": "Aujourd'hui", "de": "Heute", "es": "Hoy" }
+              "label": {
+                "en": "Today",
+                "fr": "Aujourd'hui",
+                "de": "Heute",
+                "es": "Hoy"
+              }
             },
             {
               "value": "1",
-              "label": { "en": "Tomorrow", "fr": "Demain", "de": "Morgen", "es": "Mañana" }
+              "label": {
+                "en": "Tomorrow",
+                "fr": "Demain",
+                "de": "Morgen",
+                "es": "Mañana"
+              }
             },
             {
               "value": "2",
@@ -266,6 +423,125 @@
             "fr": "Message de RTE",
             "de": "Nachricht von RTE (auf Französisch)",
             "es": "Mensaje de RTE (en francés)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "ecogaz_alert",
+      "label": {
+        "en": "EcoGaz alert announced",
+        "fr": "Alerte EcoGaz annoncée",
+        "de": "EcoGaz-Warnung angekündigt",
+        "es": "Alerta EcoGaz anunciada"
+      },
+      "description": {
+        "en": "The gas network turns orange or red today or tomorrow (EcoGaz). Once per day and color.",
+        "fr": "Le réseau de gaz passe à l'orange ou au rouge aujourd'hui ou demain (EcoGaz). Une fois par jour et couleur.",
+        "de": "Das Gasnetz wird heute oder morgen orange oder rot (EcoGaz). Einmal pro Tag und Farbe.",
+        "es": "La red de gas pasa a naranja o rojo hoy o mañana (EcoGaz). Una vez por día y color."
+      },
+      "fields": [
+        {
+          "key": "color",
+          "type": "multi_select",
+          "label": {
+            "en": "Signal",
+            "fr": "Signal",
+            "de": "Signal",
+            "es": "Señal"
+          },
+          "options": [
+            {
+              "value": "orange",
+              "label": {
+                "en": "Orange (tight network)",
+                "fr": "Orange (réseau tendu)",
+                "de": "Orange (angespanntes Netz)",
+                "es": "Naranja (red tensa)"
+              }
+            },
+            {
+              "value": "red",
+              "label": {
+                "en": "Red (cuts possible)",
+                "fr": "Rouge (délestages possibles)",
+                "de": "Rot (Abschaltungen möglich)",
+                "es": "Rojo (posibles cortes)"
+              }
+            }
+          ]
+        },
+        {
+          "key": "days_ahead",
+          "type": "select",
+          "label": {
+            "en": "Day concerned",
+            "fr": "Jour concerné",
+            "de": "Betroffener Tag",
+            "es": "Día afectado"
+          },
+          "options": [
+            {
+              "value": "0",
+              "label": {
+                "en": "Today",
+                "fr": "Aujourd'hui",
+                "de": "Heute",
+                "es": "Hoy"
+              }
+            },
+            {
+              "value": "1",
+              "label": {
+                "en": "Tomorrow",
+                "fr": "Demain",
+                "de": "Morgen",
+                "es": "Mañana"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "color",
+          "type": "string",
+          "label": {
+            "en": "Signal (orange or red)",
+            "fr": "Signal (orange ou red)",
+            "de": "Signal (orange oder red)",
+            "es": "Señal (orange o red)"
+          }
+        },
+        {
+          "key": "level",
+          "type": "number",
+          "label": {
+            "en": "EcoGaz level (2 orange, 3 red)",
+            "fr": "Niveau EcoGaz (2 orange, 3 rouge)",
+            "de": "EcoGaz-Stufe (2 orange, 3 rot)",
+            "es": "Nivel EcoGaz (2 naranja, 3 rojo)"
+          }
+        },
+        {
+          "key": "date",
+          "type": "string",
+          "label": {
+            "en": "Date of the day (YYYY-MM-DD)",
+            "fr": "Date du jour concerné (AAAA-MM-JJ)",
+            "de": "Datum des Tages (JJJJ-MM-TT)",
+            "es": "Fecha del día (AAAA-MM-DD)"
+          }
+        },
+        {
+          "key": "days_ahead",
+          "type": "number",
+          "label": {
+            "en": "In how many days (0 = today)",
+            "fr": "Dans combien de jours (0 = aujourd'hui)",
+            "de": "In wie vielen Tagen (0 = heute)",
+            "es": "Dentro de cuántos días (0 = hoy)"
           }
         }
       ]

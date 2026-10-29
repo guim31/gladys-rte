@@ -10,6 +10,18 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+### Added
+
+- **éCO2mix by region**: tick one or more regions of mainland France in the configuration and get
+  one **Electricity <region>** device each, updated every quarter-hour: consumption, production,
+  exchanges with the neighbours, coverage (production out of consumption), low-carbon and
+  renewable shares, and the share of nuclear, hydro, wind, solar, bioenergy and fossil thermal.
+- **EcoGaz** device (GRTgaz and Teréga, no key): the signal of the French gas network for today
+  and the next three days (0 green, 1 yellow, 2 orange, 3 red).
+- **EcoGaz alert announced** scene trigger: the gas network turns orange or red today or tomorrow,
+  once per day and color, remembered across restarts.
+- The **Test the connection to RTE** button also reads EcoGaz and the regions chosen.
+
 ## [1.0.2] - 2026-10-15
 
 ### Changed
