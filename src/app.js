@@ -232,7 +232,7 @@ export function registerHandlers(
    */
   let gasAnnouncing = Promise.resolve();
   function announceGasAlerts(read) {
-    gasAnnouncing = gasAnnouncing.then(() => announceGasAlertsNow(read));
+    gasAnnouncing = gasAnnouncing.catch(() => {}).then(() => announceGasAlertsNow(read));
     return gasAnnouncing;
   }
 
