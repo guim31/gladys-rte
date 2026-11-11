@@ -54,7 +54,7 @@ key needed). It has no EcoWatt device and no EcoWatt trigger. So:
 
 ## Requirements
 
-- Gladys Assistant 5.1.0 or later, with internet access.
+- Gladys Assistant 5.3.0 or later, with internet access.
 - For EcoWatt only: a free application on [data.rte-france.com](https://data.rte-france.com),
   subscribed to the Ecowatt API (v5). Its client ID and secret go into the configuration.
 

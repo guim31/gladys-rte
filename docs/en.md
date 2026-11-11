@@ -58,7 +58,7 @@ with no subscription and no account to create. Gladys has no EcoWatt device and 
 
 ## Requirements
 
-- Gladys Assistant 5.1.0 or later.
+- Gladys Assistant 5.3.0 or later.
 - Internet access from Gladys (the data come from RTE's servers).
 - For EcoWatt only: a free account on [data.rte-france.com](https://data.rte-france.com) and an
   application subscribed to the **Ecowatt** API:
