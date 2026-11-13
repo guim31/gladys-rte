@@ -79,8 +79,9 @@ test('two scene triggers and a widget, no scene action: Gladys >= 5.1.0', () => 
   assert.deepEqual(keysOf(manifest.widgets), [WIDGET_KEY]);
   assert.equal(manifest.scene_actions, undefined);
   assert.ok(isAtLeast(minGladysVersion(), CAPABILITY_MIN_GLADYS_VERSION));
-  // No widget button opens a form (#3168): 5.2.0 is not needed.
-  assert.equal(manifest.gladys_version, '>=5.1.0');
+  // No widget button opens a form (#3168): 5.2.0 is not needed; the catalog
+  // countries need 5.3.0.
+  assert.equal(manifest.gladys_version, '>=5.3.0');
 });
 
 test('config_schema defaults stay consistent with DEFAULT_CONFIG', () => {
@@ -194,4 +195,9 @@ test('the EcoGaz trigger filters and variables are the keys the code sends', asy
   // The filters compare strings: the core converts the number of the event.
   assert.ok(['0', '1'].includes(String(event.data.days_ahead)));
   assert.ok(['orange', 'red'].includes(event.data.color));
+});
+
+test('the catalog countries: France, which needs Gladys >= 5.3.0', () => {
+  assert.deepEqual(manifest.countries, ['FR']);
+  assert.ok(isAtLeast(minGladysVersion(), [5, 3, 0]), 'countries needs Gladys 5.3.0');
 });

@@ -61,7 +61,7 @@ EcoWatt-Gerät oder einen EcoWatt-Auslöser gibt es in Gladys nicht.
 
 ## Voraussetzungen
 
-- Gladys Assistant 5.1.0 oder neuer.
+- Gladys Assistant 5.3.0 oder neuer.
 - Internetzugang für Gladys (die Daten kommen von den Servern von RTE).
 - Nur für EcoWatt: ein kostenloses Konto auf [data.rte-france.com](https://data.rte-france.com) und
   eine Anwendung mit Abo der **Ecowatt**-API:

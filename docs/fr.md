@@ -63,7 +63,7 @@ EcoWatt dans Gladys.
 
 ## Prérequis
 
-- Gladys Assistant 5.1.0 ou plus récent.
+- Gladys Assistant 5.3.0 ou plus récent.
 - Un accès à internet depuis Gladys (les données viennent des serveurs de RTE).
 - Pour EcoWatt seulement : un compte gratuit sur
   [data.rte-france.com](https://data.rte-france.com) et une application abonnée à l'API
